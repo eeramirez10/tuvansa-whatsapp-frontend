@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuoteBot Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+        }
+        .quote-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .status-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+        }
+        .status-pending {
+            background-color: #FEF3C7;
+            color: #92400E;
+        }
+        .status-approved {
+            background-color: #D1FAE5;
+            color: #065F46;
+        }
+        .status-rejected {
+            background-color: #FEE2E2;
+            color: #92400E;
+        }
+        .status-completed {
+            background-color: #DBEAFE;
+            color: #1E40AF;
+        }
+        .chat-bubble {
+            max-width: 80%;
+            border-radius: 1rem;
+            padding: 0.75rem 1rem;
+        }
+        .client-bubble {
+            background-color: #E5E7EB;
+            margin-right: auto;
+        }
+        .agent-bubble {
+            background-color: #3B82F6;
+            color: white;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="hidden md:flex md:flex-shrink-0">
+            <div class="flex flex-col w-64 border-r border-gray-200 bg-white">
+                <div class="flex items-center h-16 px-4 gradient-bg">
+                    <div class="flex items-center">
+                        <i data-feather="message-square" class="text-white mr-2"></i>
+                        <span class="text-xl font-bold text-white">QuoteBot</span>
+                    </div>
+                </div>
+                <div class="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
+                    <nav class="flex-1 px-2 space-y-1">
+                        <a href="#" class="flex items-center px-4 py-2 text-sm font-medium rounded-md bg-blue-50 text-blue-700">
+                            <i data-feather="home" class="mr-3"></i>
+                            Dashboard
+                        </a>
+                        <a href="#" class="flex items-center px-4 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+                            <i data-feather="dollar-sign" class="mr-3"></i>
+                            Cotizaciones
+                        </a>
+                        <a href="#" class="flex items-center px-4 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+                            <i data-feather="message-square" class="mr-3"></i>
+                            Conversaciones
+                        </a>
+                        <a href="#" class="flex items-center px-4 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+                            <i data-feather="users" class="mr-3"></i>
+                            Clientes
+                        </a>
+                        <a href="#" class="flex items-center px-4 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+                            <i data-feather="bar-chart-2" class="mr-3"></i>
+                            Reportes
+                        </a>
+                        <a href="#" class="flex items-center px-4 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+                            <i data-feather="settings" class="mr-3"></i>
+                            Configuración
+                        </a>
+                    </nav>
+                </div>
+                <div class="p-4 border-t border-gray-200">
+                    <div class="flex items-center">
+                        <img class="w-10 h-10 rounded-full" src="http://static.photos/people/200x200/1" alt="User profile">
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-700">John Doe</p>
+                            <p class="text-sm text-gray-500">Gerente</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="flex flex-col flex-1 overflow-hidden">
+            <!-- Top navbar -->
+            <div class="flex items-center justify-between h-16 px-4 border-b border-gray-200 bg-white">
+                <div class="flex items-center md:hidden">
+                    <button type="button" class="text-gray-500 hover:text-gray-600 focus:outline-none">
+                        <i data-feather="menu"></i>
+                    </button>
+                </div>
+                <div class="flex-1 px-4">
+                    <h1 class="text-xl font-bold text-gray-800">Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="p-1 text-gray-500 rounded-full hover:text-gray-600 focus:outline-none">
+                        <i data-feather="bell"></i>
+                    </button>
+                    <div class="relative">
+                        <input type="text" placeholder="Buscar..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <i data-feather="search" class="absolute left-3 top-2.5 text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 overflow-auto p-6">
+                <!-- Stats cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                                <i data-feather="dollar-sign"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">Cotizaciones Hoy</p>
+                                <p class="text-2xl font-semibold text-gray-800">24</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-green-100 text-green-600">
+                                <i data-feather="check-circle"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">Aprobadas</p>
+                                <p class="text-2xl font-semibold text-gray-800">12</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                                <i data-feather="clock"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">Pendientes</p>
+                                <p class="text-2xl font-semibold text-gray-800">8</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-red-100 text-red-600">
+                                <i data-feather="x-circle"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">Rechazadas</p>
+                                <p class="text-2xl font-semibold text-gray-800">4</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent quotes -->
+                <div class="bg-white rounded-lg shadow overflow-hidden mb-6">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-lg font-semibold text-gray-800">Cotizaciones Recientes</h2>
+                            <button class="text-sm text-blue-600 hover:text-blue-800">Ver todas</button>
+                        </div>
+                    </div>
+                    <div class="divide-y divide-gray-200">
+                        <!-- Quote item -->
+                        <div class="p-6 hover:bg-gray-50 transition-colors duration-150 cursor-pointer">
+                            <div class="flex items-center justify-between mb-2">
+                                <div>
+                                    <span class="text-sm font-medium text-gray-500">#QT-2023-0012</span>
+                                    <h3 class="text-lg font-semibold text-gray-800">Juan Pérez</h3>
+                                </div>
+                                <span class="status-badge status-pending">PENDIENTE</span>
+                            </div>
+                            <p class="text-gray-600 mb-4">Materiales de construcción para proyecto residencial</p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <span class="text-sm text-gray-500"><i data-feather="phone" class="w-4 h-4 inline mr-1"></i> +51 987654321</span>
+                                    <span class="text-sm text-gray-500"><i data-feather="map-pin" class="w-4 h-4 inline mr-1"></i> Lima</span>
+                                </div>
+                                <span class="text-lg font-semibold">S/ 2,450.00</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Quote item -->
+                        <div class="p-6 hover:bg-gray-50 transition-colors duration-150 cursor-pointer">
+                            <div class="flex items-center justify-between mb-2">
+                                <div>
+                                    <span class="text-sm font-medium text-gray-500">#QT-2023-0011</span>
+                                    <h3 class="text-lg font-semibold text-gray-800">Constructora Andina SAC</h3>
+                                </div>
+                                <span class="status-badge status-approved">APROBADA</span>
+                            </div>
+                            <p class="text-gray-600 mb-4">Pedido mensual de materiales para obra en San Isidro</p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <span class="text-sm text-gray-500"><i data-feather="phone" class="w-4 h-4 inline mr-1"></i> +51 987123456</span>
+                                    <span class="text-sm text-gray-500"><i data-feather="map-pin" class="w-4 h-4 inline mr-1"></i> San Isidro</span>
+                                </div>
+                                <span class="text-lg font-semibold">S/ 8,720.00</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Quote item -->
+                        <div class="p-6 hover:bg-gray-50 transition-colors duration-150 cursor-pointer">
+                            <div class="flex items-center justify-between mb-2">
+                                <div>
+                                    <span class="text-sm font-medium text-gray-500">#QT-2023-0010</span>
+                                    <h3 class="text-lg font-semibold text-gray-800">María Rodriguez</h3>
+                                </div>
+                                <span class="status-badge status-rejected">RECHAZADA</span>
+                            </div>
+                            <p class="text-gray-600 mb-4">Materiales para remodelación de cocina</p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <span class="text-sm text-gray-500"><i data-feather="phone" class="w-4 h-4 inline mr-1"></i> +51 987456123</span>
+                                    <span class="text-sm text-gray-500"><i data-feather="map-pin" class="w-4 h-4 inline mr-1"></i> Miraflores</span>
+                                </div>
+                                <span class="text-lg font-semibold">S/ 1,230.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent conversations -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-semibold text-gray-800">Conversaciones Recientes</h2>
+                                <button class="text-sm text-blue-600 hover:text-blue-800">Ver todas</button>
+                            </div>
+                        </div>
+                        <div class="divide-y divide-gray-200">
+                            <!-- Conversation item -->
+                            <div class="p-4 hover:bg-gray-50 transition-colors duration-150 cursor-pointer">
+                                <div class="flex items-center mb-2">
+                                    <img class="w-10 h-10 rounded-full" src="http://static.photos/people/200x200/2" alt="Client profile">
+                                    <div class="ml-3">
+                                        <h3 class="font-medium text-gray-800">Carlos Gutiérrez</h3>
+                                        <p class="text-sm text-gray-500">Hace 15 minutos</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center text-sm text-gray-600">
+                                    <p class="truncate">Hola, necesito cotización para 50 bolsas de cemento...</p>
+                                    <span class="ml-auto bg-blue-500 text-white text-xs px-2 py-1 rounded-full">2</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Conversation item -->
+                            <div class="p-4 hover:bg-gray-50 transition-colors duration-150 cursor-pointer">
+                                <div class="flex items-center mb-2">
+                                    <img class="w-10 h-10 rounded-full" src="http://static.photos/people/200x200/3" alt="Client profile">
+                                    <div class="ml-3">
+                                        <h3 class="font-medium text-gray-800">Constructora Norte SAC</h3>
+                                        <p class="text-sm text-gray-500">Hace 2 horas</p>
+                                    </div>
+                                </div>
+                                <div class="text-sm text-gray-600">
+                                    <p class="truncate">Buenas tardes, por favor enviar cotización formal para el proyecto "Torres del Norte"</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat preview -->
+                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <h2 class="text-lg font-semibold text-gray-800">Vista previa de chat</h2>
+                                <button class="text-sm text-blue-600 hover:text-blue-800">Ver completo</button>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <div class="mb-4">
+                                <div class="flex items-center mb-3">
+                                    <img class="w-8 h-8 rounded-full" src="http://static.photos/people/200x200/4" alt="Client profile">
+                                    <span class="ml-2 font-medium">Ana Torres</span>
+                                    <span class="ml-auto text-xs text-gray-500">10:32 AM</span>
+                                </div>
+                                <!-- Chat messages -->
+                                <div class="space-y-2">
+                                    <div class="chat-bubble client-bubble">
+                                        Hola, necesito cotizar materiales para una obra pequeña
+                                    </div>
+                                    <div class="chat-bubble agent-bubble">
+                                        ¡Hola Ana! Claro, con gusto te ayudo. ¿Qué materiales necesitas?
+                                    </div>
+                                    <div class="chat-bubble client-bubble">
+                                        Necesito 20 bolsas de cemento, 100 ladrillos y 5 tubos de PVC de 1/2"
+                                    </div>
+                                    <div class="chat-bubble agent-bubble">
+                                        Perfecto, ya generé la cotización #QT-2023-0013. ¿Deseas que te la envíe por WhatsApp o correo?
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="border-t border-gray-200 pt-4">
+                                <div class="flex">
+                                    <input type="text" placeholder="Escribe un mensaje..." class="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <button class="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 focus:outline-none">
+                                        <i data-feather="send"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        feather.replace();
+        
+        // Example of dynamic data loading (would be replaced with your actual API calls)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simulate loading quotes
+            setTimeout(() => {
+                // This would be replaced with actual data from your backend
+                console.log('Data loaded from API');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

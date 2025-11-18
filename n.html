@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle de Cotización - TUVANSA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 20px;
+      bottom: -20px;
+      width: 2px;
+      background-color: #e5e7eb;
+    }
+    .timeline-item:last-child::before {
+      display: none;
+    }
+    .editable-cell {
+      transition: all 0.2s;
+    }
+    .editable-cell:hover {
+      background-color: #f9fafb;
+    }
+    .editable-cell input {
+      border: 1px solid #d1d5db;
+      padding: 4px 8px;
+      border-radius: 4px;
+      width: 100%;
+    }
+    .editable-cell input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      ring: 2px;
+      ring-color: #3b82f6;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full md:translate-x-0" aria-label="Sidebar">
+      <div class="flex justify-center bg-gradient-to-r from-yellow-200 to-yellow-500 py-2 px-1">
+        <img class="h-12" alt="Logo TUVANSA" src="/img/logo-tuvansa.png">
+      </div>
+      <div class="flex flex-col h-full overflow-y-auto bg-white relative">
+        <ul class="space-y-3 px-3 py-4">
+          <li>
+            <a class="flex p-2 text-sm rounded-lg items-center hover:bg-gray-100 gap-2 text-gray-700" href="/home">
+              <div class="shrink-0 w-5 h-5 transition duration-75 text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="7" height="9" x="3" y="3" rx="1"></rect>
+                  <rect width="7" height="5" x="14" y="3" rx="1"></rect>
+                  <rect width="7" height="9" x="14" y="12" rx="1"></rect>
+                  <rect width="7" height="5" x="3" y="16" rx="1"></rect>
+                </svg>
+              </div>
+              Dashboard
+            </a>
+          </li>
+          <li>
+            <a class="flex p-2 text-sm rounded-lg items-center gap-2 bg-gray-100 text-gray-900" href="/quotes" aria-current="page">
+              <div class="shrink-0 w-5 h-5 transition duration-75 text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" x2="12" y1="2" y2="22"></line>
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+              </div>
+              Cotizaciones
+            </a>
+          </li>
+          <li>
+            <a class="flex p-2 text-sm rounded-lg items-center hover:bg-gray-100 gap-2 text-gray-700" href="/">
+              <div class="shrink-0 w-5 h-5 transition duration-75 text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path>
+                  <path d="M7 11h10"></path>
+                  <path d="M7 15h6"></path>
+                  <path d="M7 7h8"></path>
+                </svg>
+              </div>
+              Chats
+            </a>
+          </li>
+        </ul>
+        <div class="p-4 border-t border-gray-200 absolute bottom-0 w-full">
+          <div class="flex gap-4">
+            <img class="rounded-full h-10" alt="Usuario" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png">
+            <div>
+              <h3 class="text-sm font-medium text-gray-700">Erick Ramirez</h3>
+            </div>
+          </div>
+          <div class="mt-5 flex items-center justify-between gap-5 cursor-pointer text-gray-600 hover:text-gray-900">
+            <h3 class="text-sm">Cerrar sesión</h3>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">
+              <path d="m16 17 5-5-5-5"></path>
+              <path d="M21 12H9"></path>
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="md:ml-64 flex flex-col flex-1 overflow-hidden">
+      <!-- Header -->
+      <div class="flex items-center justify-between h-16 bg-white border-b border-gray-200 w-full top-0">
+        <button class="inline-flex ml-4 items-center p-2 mt-2 ms-3 text-sm text-gray-800 rounded-lg md:hidden hover:bg-gray-100">
+          <span class="sr-only">Abrir menú</span>
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
+          </svg>
+        </button>
+        <div class="flex-1 m-2">
+          <h1 class="text-xl font-bold text-gray-800">Detalle de Cotización</h1>
+        </div>
+        <div class="flex space-x-4 items-center mr-4">
+          <button>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2">
+              <path d="M10.268 21a2 2 0 0 0 3.464 0"></path>
+              <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"></path>
+            </svg>
+          </button>
+          <div class="relative">
+            <input class="w-full pl-10 pr-4 border p-1 rounded-md border-gray-200" placeholder="Buscar..." type="text">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="absolute left-3 top-1.5 text-gray-400">
+              <path d="m21 21-4.34-4.34"></path>
+              <circle cx="11" cy="11" r="8"></circle>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="flex-1 overflow-auto p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" id="mainGrid">
+          <!-- Left Column -->
+          <div class="lg:col-span-2 space-y-6" id="leftColumn">
+            <!-- Quote Details Card -->
+            <div class="bg-white rounded-md shadow-md">
+              <div class="flex justify-between items-center p-4">
+                <h2 class="font-semibold">Cotización #301</h2>
+                <button onclick="toggleExpand()" class="text-gray-600 hover:text-gray-900 transition-colors" title="Expandir/Contraer">
+                  <svg id="expandIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="border-b border-gray-200"></div>
+              
+              <!-- Client and Details -->
+              <div class="flex justify-between">
+                <div class="items-center p-4">
+                  <h3 class="uppercase text-sm font-medium text-gray-500 mb-2">Cliente</h3>
+                  <div class="flex items-center space-x-3">
+                    <img class="h-10 rounded-full" alt="Cliente" src="https://static.photos/people/200x200/5">
+                    <div class="space-y-0.5">
+                      <h2 class="text-md font-semibold">Alfonso Marquez</h2>
+                      <p class="text-xs text-gray-500">4741195438</p>
+                      <p class="text-xs text-gray-500">residencia1@manmor.mx</p>
+                      <p class="text-xs text-gray-500">Santa Catarina parque Finsa</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="items-center p-4">
+                  <h2 class="uppercase text-sm font-medium text-gray-500 mb-2">Detalles</h2>
+                  <div class="items-center space-x-3">
+                    <p class="text-xs text-gray-600"><span class="text-gray-800">Fecha:</span> October 17, 2025 1:20 PM</p>
+                    <p class="text-xs text-gray-600"><span class="text-gray-900">Generada por:</span> AI Agente</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Products Table -->
+              <div class="overflow-x-auto p-4">
+                <div class="flex justify-between items-center mb-3">
+                  <h3 class="text-sm font-semibold text-gray-700">Productos cotizados</h3>
+                  <button onclick="toggleEdit()" id="editBtn" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 20h9"></path>
+                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    </svg>
+                    <span id="editBtnText">Editar Precios</span>
+                  </button>
+                </div>
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">UM</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase editable-header" style="display: none;">Precio Unit.</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase editable-header" style="display: none;">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
+                    <tr>
+                      <td class="px-6 py-4 text-xs text-gray-900">TUBO DE ACERO AL CARBON CON COSTURA DE 273.1 X 09.3 MM. (10" CED. 40)</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">TCC1040</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">METRO</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">1</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 editable-cell editable-column" style="display: none;">
+                        <input type="number" class="price-input" placeholder="$0.00" value="" step="0.01" oninput="calculateTotal(this)">
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 editable-column total-cell" style="display: none;">
+                        $0.00
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot class="bg-gray-50 editable-column" style="display: none;">
+                    <tr>
+                      <td colspan="5" class="px-6 py-4 text-right text-sm font-bold text-gray-900">Total General:</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600" id="grandTotal">$0.00</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+            <!-- Conversation Card -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+              <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800">Conversación relacionada</h2>
+              </div>
+              <div class="p-4">
+                <div class="flex items-center mb-4">
+                  <img class="w-8 h-8 rounded-full" alt="Cliente" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png">
+                  <div class="ml-3">
+                    <h3 class="font-medium">Alfonso Marquez</h3>
+                    <p class="text-xs text-gray-500">October 17, 2025 1:20 PM</p>
+                  </div>
+                </div>
+                <div class="space-y-3 max-h-64 overflow-y-auto">
+                  <div class="flex">
+                    <div class="flex-shrink-0 mr-3">
+                      <img class="w-8 h-8 rounded-full" alt="Cliente" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png">
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-3">
+                      <p class="text-sm">Buen día</p>
+                    </div>
+                  </div>
+                  <div class="flex justify-end">
+                    <div class="bg-green-100 rounded-lg p-3">
+                      <p class="text-sm">¡Hola! Es un placer saludarte. Bienvenido a Tubería y Válvulas del Norte TUVANSA. ¿En qué puedo apoyarte hoy?</p>
+                    </div>
+                    <div class="flex-shrink-0 ml-3">
+                      <img class="w-8 h-8 rounded-full object-cover" alt="AI Agent" src="/img/logo-tuvansa.png">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div class="space-y-6" id="rightColumn">
+            <!-- Summary Card -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+              <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800">Resumen de la conversación</h2>
+              </div>
+              <div class="p-6">
+                <p class="text-sm text-gray-600">El cliente, Alfonso Marquez, solicitó una cotización por 1 metro de un tubo de acero al carbón de 10" con cédula 40. La conversación incluyó la entrega en Santa Catarina Parque Finsa y el cliente proporcionó su número telefónico y correo electrónico para completar la cotización.</p>
+              </div>
+            </div>
+
+            <!-- Actions Card -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+              <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800">Acciones</h2>
+              </div>
+              <div class="p-6 space-y-4">
+                <button class="w-full text-white flex items-center justify-center px-4 py-2 bg-purple-400 rounded-lg text-sm font-medium hover:bg-purple-500">
+                  Descargar datos
+                </button>
+                <button class="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+                  Enviar por Email
+                </button>
+                <button class="w-full flex items-center justify-center px-4 py-2 bg-green-100 text-green-800 rounded-lg text-sm font-medium hover:bg-green-200">
+                  Contactar Cliente
+                </button>
+              </div>
+            </div>
+
+            <!-- History Card -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+              <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800">Historial</h2>
+              </div>
+              <div class="p-6">
+                <div class="space-y-4">
+                  <div class="relative timeline-item pl-8">
+                    <div class="absolute left-0 top-0 w-4 h-4 bg-blue-500 rounded-full z-10"></div>
+                    <div class="text-sm font-medium text-gray-800">Cotización creada</div>
+                    <div class="text-xs text-gray-500">15/06/2023 10:20 AM</div>
+                    <div class="text-sm text-gray-600 mt-1">La cotización fue generada automáticamente por el agente de IA.</div>
+                  </div>
+                  <div class="relative timeline-item pl-8">
+                    <div class="absolute left-0 top-0 w-4 h-4 bg-gray-500 rounded-full z-10"></div>
+                    <div class="text-sm font-medium text-gray-800">Enviada al cliente</div>
+                    <div class="text-xs text-gray-500">15/06/2023 10:22 AM</div>
+                    <div class="text-sm text-gray-600 mt-1">La cotización fue enviada por WhatsApp al cliente.</div>
+                  </div>
+                  <div class="relative timeline-item pl-8">
+                    <div class="absolute left-0 top-0 w-4 h-4 bg-yellow-500 rounded-full z-10"></div>
+                    <div class="text-sm font-medium text-gray-800">Asignada a vendedor</div>
+                    <div class="text-xs text-gray-500">15/06/2023 10:25 AM</div>
+                    <div class="text-sm text-gray-600 mt-1">La cotización fue asignada a Juan Pérez para seguimiento.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isEditMode = false;
+    let isExpanded = false;
+
+    function toggleEdit() {
+      isEditMode = !isEditMode;
+      const editableColumns = document.querySelectorAll('.editable-column');
+      const editableHeaders = document.querySelectorAll('.editable-header');
+      const editBtn = document.getElementById('editBtn');
+      const editBtnText = document.getElementById('editBtnText');
+      
+      editableColumns.forEach(col => {
+        col.style.display = isEditMode ? 'table-cell' : 'none';
+      });
+      
+      editableHeaders.forEach(header => {
+        header.style.display = isEditMode ? 'table-cell' : 'none';
+      });
+      
+      if (isEditMode) {
+        editBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+        editBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+        editBtnText.textContent = 'Guardar Precios';
+      } else {
+        editBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+        editBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+        editBtnText.textContent = 'Editar Precios';
+      }
+    }
+
+    function toggleExpand() {
+      isExpanded = !isExpanded;
+      const leftColumn = document.getElementById('leftColumn');
+      const rightColumn = document.getElementById('rightColumn');
+      const mainGrid = document.getElementById('mainGrid');
+      const expandIcon = document.getElementById('expandIcon');
+      
+      if (isExpanded) {
+        mainGrid.classList.remove('lg:grid-cols-3');
+        mainGrid.classList.add('lg:grid-cols-1');
+        rightColumn.style.display = 'none';
+        expandIcon.innerHTML = '<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>';
+      } else {
+        mainGrid.classList.remove('lg:grid-cols-1');
+        mainGrid.classList.add('lg:grid-cols-3');
+        rightColumn.style.display = 'block';
+        expandIcon.innerHTML = '<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>';
+      }
+    }
+
+    function calculateTotal(input) {
+      const row = input.closest('tr');
+      const quantity = parseFloat(row.cells[3].textContent);
+      const unitPrice = parseFloat(input.value) || 0;
+      const total = quantity * unitPrice;
+      
+      const totalCell = row.querySelector('.total-cell');
+      totalCell.textContent = '$' + total.toFixed(2);
+      
+      updateGrandTotal();
+    }
+
+    function updateGrandTotal() {
+      const totalCells = document.querySelectorAll('.total-cell');
+      let grandTotal = 0;
+      
+      totalCells.forEach(cell => {
+        const value = parseFloat(cell.textContent.replace('$', '')) || 0;
+        grandTotal += value;
+      });
+      
+      document.getElementById('grandTotal').textContent = '$' + grandTotal.toFixed(2);
+    }
+  </script>
+</body>
+</html>
