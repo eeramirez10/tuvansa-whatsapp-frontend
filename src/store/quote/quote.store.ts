@@ -34,6 +34,7 @@ export interface QuoteCustomer {
   phone?: string
   email?: string
   location?: string
+  company?: string
 }
 
 export interface QuoteLineSource {
@@ -187,7 +188,7 @@ const apiStore: StateCreator<QuotesState> = (set, get) => ({
   createQuote: (partial) => {
     const id = partial?.id ?? newId()
 
-    console.log({ partial })
+
     const quote: Quote = {
       id,
       quoteNumber: partial?.quoteNumber,
@@ -369,7 +370,6 @@ const apiStore: StateCreator<QuotesState> = (set, get) => ({
     const q = s.quotesById[quoteId];
     if (!q) return {}
 
-    console.log(quoteId)
     return {
       quotesById: {
         ...s.quotesById,

@@ -1,4 +1,4 @@
-import { DollarSign, LogOut, LucideLayoutDashboard, MessageSquareTextIcon } from 'lucide-react'
+import { DollarSign, LucideLayoutDashboard, Power, UserRound } from 'lucide-react'
 import { NavLink } from 'react-router'
 import { useUiBoundStore } from '../../store/ui/useUiBoundStore'
 import { useAuth } from '../../hooks/useAuth'
@@ -32,7 +32,9 @@ export const SideBar = () => {
   const nav = [
     { name: 'Dashboard', to: '/home', icon: <LucideLayoutDashboard /> },
     { name: 'Cotizaciones', to: '/quotes', icon: <DollarSign /> },
-    { name: 'Chats', to: '/', icon: <MessageSquareTextIcon /> }
+    // { name: 'Usuarios', to: '/users', icon: <Users /> },
+    { name: 'Perfil', to: '/user', icon: <UserRound /> },
+    // { name: 'Chats', to: '/', icon: <MessageSquareTextIcon /> }
 
   ]
 
@@ -76,21 +78,33 @@ export const SideBar = () => {
 
           <div className='p-4 border-t border-gray-200 absolute bottom-17 w-full'>
 
-            <div className='flex gap-4 '>
+            <div className='flex gap-4  justify-center items-center'>
               <img className='rounded-full h-10' src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png" alt="" />
 
               <div>
-                <h3 className='text-sm font-medium text-gray-700'>{user?.name} {user?.lastname}</h3>
-                {/* <p className='text-sm text-gray-500'>Jefe IT</p> */}
+                <h3 className='text-md font-bold text-gray-700'>{user?.name} {user?.lastname}</h3>
+                <h3 className='text-sm text-gray-500'></h3>
+              </div>
+
+              <div
+                onClick={logout}
+                className='
+                cursor-pointer  
+                p-2
+                text-gray-500
+              hover:bg-amber-300
+                hover:rounded-full
+              hover:text-white
+                transition-all
+                ease-in
+              '
+              >
+
+                <Power className='h-5 w-5 ' />
               </div>
             </div>
 
-            <div
-              onClick={logout}
-              className='mt-5 flex items-center justify-between gap-5 cursor-pointer text-gray-600 hover:text-gray-900' >
-              <h3 className=' text-sm'>Cerrar session</h3>
-              <LogOut className='h-5 w-5 ' />
-            </div>
+
 
 
           </div>

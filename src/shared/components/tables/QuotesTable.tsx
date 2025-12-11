@@ -1,7 +1,7 @@
 import { type FC } from 'react'
-import type { Quote } from '../../../services/quotes/types'
 
 import { NavLink } from 'react-router'
+import type { Quote } from '../../../store/quote/quote.store'
 
 
 
@@ -17,7 +17,7 @@ export const QuotesTable: FC<Props> = ({ quotes, isLoading }) => {
   if (isLoading) {
 
     return (
-      <QuotesTableSkelleton />
+      <QuotesTableSkelleton items={quotes?.length ?? 10} />
     )
   }
 
@@ -50,8 +50,8 @@ export const QuotesTable: FC<Props> = ({ quotes, isLoading }) => {
                   <div className="flex items-center">
                     <img className="w-8 h-8 rounded-full" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png" alt="Client picture" />
                     <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-900">{quote.customer.name} {quote.customer.lastname}</p>
-                      <p className="text-sm text-gray-500">{quote.customer.phone}</p>
+                      <p className="text-sm font-medium text-gray-900">{quote?.customer?.name} {quote?.customer?.lastname}</p>
+                      <p className="text-sm text-gray-500">{quote?.customer?.phone}</p>
                     </div>
                   </div>
                 </td>
@@ -78,8 +78,16 @@ export const QuotesTable: FC<Props> = ({ quotes, isLoading }) => {
   )
 }
 
+interface QuotesTableSkelletonProps {
+  items: number
+}
 
-const QuotesTableSkelleton = () => {
+
+const QuotesTableSkelleton: React.FC<QuotesTableSkelletonProps> = (props) => {
+
+  const { items = 1 } = props
+
+
 
   return (
 
@@ -95,80 +103,37 @@ const QuotesTableSkelleton = () => {
 
       <div className="bg-white divide-y divide-gray-200">
 
+        {
+          Array.from({ length: items}).map((_, index) => (
+            <div key={index} className="quote-item hover:bg-gray-50 flex justify-between">
+              <div className="px-6 py-4 ">
+                <div className='h-2 w-10 bg-gray-300'></div>
+              </div>
+              <div className="px-6 py-4">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 rounded-full bg-gray-300"  ></div>
+                  <div className="ml-3">
+                    <div className="h-2 w-20 bg-gray-300 mb-2"></div>
+                    <div className="h-2 w-10 bg-gray-300"></div>
+                  </div>
+                </div>
+              </div>
+              <div className="px-6 py-4 ">
+                <div className='h-2 w-20 bg-gray-300 mb-2'></div>
+              </div>
+              <div className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <div className='h-2 w-10 bg-gray-300 mb-2'></div>
 
-
-        <div className="quote-item hover:bg-gray-50 flex justify-between">
-          <div className="px-6 py-4 ">
-            <div className='h-2 w-10 bg-gray-300'></div>
-          </div>
-          <div className="px-6 py-4">
-            <div className="flex items-center">
-              <div className="w-8 h-8 rounded-full bg-gray-300"  ></div>
-              <div className="ml-3">
-                <div className="h-2 w-20 bg-gray-300 mb-2"></div>
-                <div className="h-2 w-10 bg-gray-300"></div>
+                {/* <button className="text-blue-600 hover:text-blue-900 mr-3">Ver</button> */}
+                {/* <button className="text-green-600 hover:text-green-900 mr-3">Aprobar</button>
+                <button className="text-red-600 hover:text-red-900">Rechazar</button> */}
               </div>
             </div>
-          </div>
-          <div className="px-6 py-4 ">
-            <div className='h-2 w-20 bg-gray-300 mb-2'></div>
-          </div>
-          <div className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-            <div className='h-2 w-10 bg-gray-300 mb-2'></div>
+          ))
+        }
 
-            {/* <button className="text-blue-600 hover:text-blue-900 mr-3">Ver</button> */}
-            {/* <button className="text-green-600 hover:text-green-900 mr-3">Aprobar</button>
-                <button className="text-red-600 hover:text-red-900">Rechazar</button> */}
-          </div>
-        </div>
-        <div className="quote-item hover:bg-gray-50 flex justify-between">
-          <div className="px-6 py-4 ">
-            <div className='h-2 w-10 bg-gray-300'></div>
-          </div>
-          <div className="px-6 py-4">
-            <div className="flex items-center">
-              <div className="w-8 h-8 rounded-full bg-gray-300"  ></div>
-              <div className="ml-3">
-                <div className="h-2 w-20 bg-gray-300 mb-2"></div>
-                <div className="h-2 w-10 bg-gray-300"></div>
-              </div>
-            </div>
-          </div>
-          <div className="px-6 py-4 ">
-            <div className='h-2 w-20 bg-gray-300 mb-2'></div>
-          </div>
-          <div className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-            <div className='h-2 w-10 bg-gray-300 mb-2'></div>
 
-            {/* <button className="text-blue-600 hover:text-blue-900 mr-3">Ver</button> */}
-            {/* <button className="text-green-600 hover:text-green-900 mr-3">Aprobar</button>
-                <button className="text-red-600 hover:text-red-900">Rechazar</button> */}
-          </div>
-        </div>
-        <div className="quote-item hover:bg-gray-50 flex justify-between">
-          <div className="px-6 py-4 ">
-            <div className='h-2 w-10 bg-gray-300'></div>
-          </div>
-          <div className="px-6 py-4">
-            <div className="flex items-center">
-              <div className="w-8 h-8 rounded-full bg-gray-300"  ></div>
-              <div className="ml-3">
-                <div className="h-2 w-20 bg-gray-300 mb-2"></div>
-                <div className="h-2 w-10 bg-gray-300"></div>
-              </div>
-            </div>
-          </div>
-          <div className="px-6 py-4 ">
-            <div className='h-2 w-20 bg-gray-300 mb-2'></div>
-          </div>
-          <div className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-            <div className='h-2 w-10 bg-gray-300 mb-2'></div>
 
-            {/* <button className="text-blue-600 hover:text-blue-900 mr-3">Ver</button> */}
-            {/* <button className="text-green-600 hover:text-green-900 mr-3">Aprobar</button>
-                <button className="text-red-600 hover:text-red-900">Rechazar</button> */}
-          </div>
-        </div>
 
       </div>
     </div>

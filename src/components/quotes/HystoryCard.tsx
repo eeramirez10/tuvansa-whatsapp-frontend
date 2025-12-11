@@ -33,7 +33,7 @@ export const HistoryCard = () => {
             <div className="relative timeline-item pl-8">
               <div className="absolute left-0 top-0 w-4 h-4 bg-yellow-500 rounded-full z-10"></div>
               <div className="text-sm font-medium text-gray-800">Cotizacion creada por:</div>
-              <div className="text-xs text-gray-500">{dateFormat(quoteMeta?.versionCreatedAt)}</div>
+              <div className="text-xs text-gray-500">{quote?.createdAt ? dateFormat(quote?.createdAt): ''}</div>
               <div className="text-sm text-gray-600 mt-1">La cotización fue asignada a {quoteMeta?.createdByUser?.name} {quoteMeta?.createdByUser?.lastname}.</div>
             </div>
           }

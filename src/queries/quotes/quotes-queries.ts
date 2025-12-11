@@ -31,7 +31,7 @@ const monthRange = (): DateRange => ({
 export const useQuotes = (params?: ListParams, range?: DateRange) => {
   return useQuery({
     queryKey: quotesKeys.list(params, range),
-    queryFn: () => getQuotes(params ?? {}, range),
+    queryFn: () => getQuotes({}, params ?? {}),
     staleTime: 30_000,
     gcTime: 5 * 60_000,
     // Mantén datos anteriores mientras llega la nueva respuesta
@@ -43,7 +43,7 @@ export const useQuote = (id?: string) => {
 
 
 
- 
+
 
   const queryClient = useQueryClient()
   return useQuery({

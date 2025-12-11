@@ -5,6 +5,9 @@ import { AppLayout } from "../layouts/AppLayout";
 import { QuoteDetail } from "../pages/quote/QuoteDetail";
 import { Login } from "../pages/auth/Login";
 import { AuthLayout } from "../layouts/AuthLayout";
+import { UserProfile } from "../pages/user/UserProfile";
+import { UsersList } from "../pages/user/UsersList";
+import { UserCreate } from "../pages/user/UserCreate";
 
 
 export const router = createBrowserRouter([
@@ -35,6 +38,27 @@ export const router = createBrowserRouter([
         Component: QuoteDetail,
         handle: {
           title: 'Detalle de Cotizacion'
+        }
+      },
+      {
+        path: '/users',
+        Component: UsersList,
+        handle: {
+          title: 'Usuarios'
+        }
+      },
+      {
+        path: '/users/new',
+        Component: UserCreate,
+        handle: {
+          title: 'Nuevo usuario'
+        }
+      },
+      {
+        path: '/user',
+        Component: UserProfile,
+        handle: {
+          title: 'Perfil de usuario'
         }
       }
     ]

@@ -23,7 +23,7 @@ export const Home = () => {
 
   const [selectedThreadId, setSelectedThreadId] = useState<string | undefined>()
 
-  console.log(quotes)
+
 
 
 

@@ -4,6 +4,7 @@ import { fetcher, postFetcher } from "../../utils/fetcher";
 
 import { displayToStoreQuote, type DisplayResult } from "./quote-display.mapper";
 import { quoteMapper } from "./quotesMapper";
+
 import type { PageResult } from './types';
 
 export type ArtifactPdfResult = {
@@ -24,11 +25,12 @@ export type ArtifactPdfResult = {
 
 export const getQuotes = async (options: RequestInit, params?: { [key: string]: unknown; }) => {
 
+
   const obj: Record<string, unknown> = {}
   let urlParams = ''
 
   const pageValue = params?.page ?? 1
-  const pageSize = params?.size ?? 50
+  const pageSize = params?.size ?? 5
 
   if (params?.startDate) {
     obj.startDate = params?.startDate
@@ -45,6 +47,8 @@ export const getQuotes = async (options: RequestInit, params?: { [key: string]: 
     options
   )
 
+
+
   return { ...resp, items: resp.items.map((quote) => quoteMapper({ ...quote })) }
 
 }
@@ -56,6 +60,8 @@ export const getQuoteById = async (id: string) => {
     `${envs.URL}/quotes/${id}`,
 
   )
+
+
 
   return quoteMapper({ ...quote })
 
@@ -117,5 +123,4 @@ export const sendPdfQuoteToCustomer = async (quoteVersionId: string) => {
   return resp
 
 }
-
 
