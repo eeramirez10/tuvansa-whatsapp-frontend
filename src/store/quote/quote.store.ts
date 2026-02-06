@@ -79,7 +79,7 @@ export interface Quote {
   items: QuoteLine[]
   createdAt: string
   updatedAt: string;
-  fileKey?: string
+  fileKey?: string | null
   summary?: string
   chatThreadId?: string
   pdfSentAt?: string
@@ -199,7 +199,7 @@ const apiStore: StateCreator<QuotesState> = (set, get) => ({
       items: partial?.items ?? [],
       createdAt: nowISO(),
       updatedAt: nowISO(),
-      fileKey: partial?.fileKey,
+      fileKey: partial?.fileKey ?? null,
       summary: partial?.summary,
       chatThreadId: partial?.chatThreadId,
       status: partial?.status ?? 'PENDING',

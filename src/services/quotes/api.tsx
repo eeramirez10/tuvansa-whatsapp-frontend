@@ -23,6 +23,11 @@ export type ArtifactPdfResult = {
 }
 
 
+interface GetAttachedFileResponse {
+  url: string
+}
+
+
 export const getQuotes = async (options: RequestInit, params?: { [key: string]: unknown; }) => {
 
 
@@ -60,8 +65,6 @@ export const getQuoteById = async (id: string) => {
     `${envs.URL}/quotes/${id}`,
 
   )
-
-
 
   return quoteMapper({ ...quote })
 
@@ -122,5 +125,12 @@ export const sendPdfQuoteToCustomer = async (quoteVersionId: string) => {
 
   return resp
 
+}
+
+export const getAttachedFile = async (filename: string): Promise<GetAttachedFileResponse> => {
+
+  const resp = await fetcher<GetAttachedFileResponse>(`${envs.URL}/quotes/${filename}/quote`);
+
+  return resp;
 }
 

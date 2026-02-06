@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 import {
   Building2,
-  CheckCircle2,
+
   Mail,
   MapPin,
   Pencil,
@@ -328,3 +328,6 @@ const InfoRow = ({ icon, label, value }: { icon: React.ReactNode; label: string;
     </div>
   </div>
 )
+
+
+

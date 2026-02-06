@@ -8,6 +8,8 @@ import { useQuote } from '../../hooks/quotes/useQuote';
 import { HistoryCard } from '../../components/quotes/HystoryCard';
 import { ActionCard } from '../../components/quotes/ActionCard';
 import { SummaryCard } from '../../components/quotes/SummaryCard';
+import { PdfViewerModal } from '../../shared/components/modals/PdfViewerModal';
+import { useFiles } from '../../hooks/useFiles';
 
 
 export const QuoteDetail = () => {
@@ -19,6 +21,8 @@ export const QuoteDetail = () => {
   const { data: chat } = useMessages(quote?.chatThreadId, { pageSize: 100 })
 
   const isQuoteExpand = useUiBoundStore(state => state.expand)
+
+  const { isOpen, pdfUrl } = useFiles()
 
 
   const reversedMessages = useMemo(() => {
@@ -44,9 +48,16 @@ export const QuoteDetail = () => {
           <ChatPreview chat={reversedMessages} />
         </div>
         <div className={stylesRestOfCards}>
-          <ActionCard hasFile={Boolean(quote?.fileKey)} />
+          <ActionCard fileKey={quote?.fileKey} />
           <SummaryCard summary={quote?.summary || ''} />
           <HistoryCard />
+          {
+            isOpen && pdfUrl && (
+              <PdfViewerModal />
+            )
+
+          }
+
         </div>
       </div>
     </div>
