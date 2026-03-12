@@ -4,6 +4,7 @@ import { useQuoteStore, type QuoteLine } from "../../../store/quote/quote.store"
 import { useUiBoundStore } from "../../../store/ui/useUiBoundStore";
 import { formatCurrency } from "../../../utils/format";
 import { ResultsModal } from "../modals/ResultsModal"
+import { notify } from "../../../lib/notifications/toast-sonner";
 
 
 export const QuoteItemsTableWithInputs = () => {
@@ -42,7 +43,13 @@ export const QuoteItemsTableWithInputs = () => {
 
     const query = item.description?.trim() ?? ""
     if (!query) return
-    await searchSimilarRaw(key, query) // devuelve array (éxito/error -> [] en error)
+
+    
+    await searchSimilarRaw(key, query)
+      .catch(() => {
+
+        notify.error('Hubo un error al buscar, intentalo otra vez')
+      }) // devuelve array (éxito/error -> [] en error)
 
   }
 
@@ -135,7 +142,7 @@ export const QuoteItemsTableWithInputs = () => {
                           onChange={(e) => {
                             const val = Number((e.target.value || '').replace(/,/g, ''))
 
-                        
+
                             if (!Number.isFinite(val)) return
                             setMargin(quote.id, key, val)
                           }}
@@ -187,6 +194,24 @@ export const QuoteItemsTableWithInputs = () => {
                           >
                             Ver similares ({count})
                           </button>
+                        </div>
+                      )}
+
+                      {state === 'error' && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleSearchClick(item)}
+                            className="rounded-md border border-blue-200 px-2 py-1 text-xs text-blue-700 hover:bg-blue-50"
+                            title="Volver a buscar"
+                          >
+                            Rebuscar
+                          </button>
+                          {/* <button
+                            onClick={() => handleOpenModal(key)}
+                            className="rounded-md bg-gradient-to-r from-emerald-500 to-teal-600 px-2 py-1 text-xs text-white"
+                          >
+                            Ver similares ({count})
+                          </button> */}
                         </div>
                       )}
                     </td>

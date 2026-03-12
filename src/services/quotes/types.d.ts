@@ -59,6 +59,7 @@ export interface Customer {
   location: string
   createdAt: string
   fullName: string
+  company?:string
 
 }
 

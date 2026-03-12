@@ -1,0 +1,80 @@
+@baseUrl = http://localhost:3000/api
+@adminToken = REPLACE_WITH_ADMIN_JWT
+@userId = REPLACE_WITH_USER_UUID
+@branchId = REPLACE_WITH_BRANCH_UUID
+
+### Login admin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@empresa.com",
+  "password": "123456"
+}
+
+### List users
+GET {{baseUrl}}/users
+Authorization: Bearer {{adminToken}}
+
+### Create user
+POST {{baseUrl}}/auth/register
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Juan",
+  "lastname": "Pérez",
+  "username": "jperez",
+  "email": "juan.perez@empresa.com",
+  "phone": "5215512345678",
+  "password": "123456",
+  "role": "USER",
+  "isActive": true,
+  "branchId": "{{branchId}}",
+  "allowWhatsappAssistant": false
+}
+
+### Update user
+PUT {{baseUrl}}/users/{{userId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Juan Editado",
+  "lastname": "Pérez",
+  "username": "jperez",
+  "email": "juan.perez@empresa.com",
+  "phone": "5215512345678",
+  "role": "BRANCH_MANAGER",
+  "isActive": true,
+  "branchId": "{{branchId}}",
+  "allowWhatsappAssistant": true
+}
+
+### Create branch
+POST {{baseUrl}}/branchs
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Sucursal Monterrey Norte",
+  "address": "Av. Universidad 1200, Monterrey, NL"
+}
+
+### List notification settings
+GET {{baseUrl}}/users/notification-settings
+Authorization: Bearer {{adminToken}}
+
+### Upsert notification setting
+PUT {{baseUrl}}/users/notification-settings
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "event": "QUOTE_CREATED",
+  "channel": "WHATSAPP",
+  "template": "QUOTE_WORKFLOW_MANAGER_NEW",
+  "scope": "OWN_BRANCH",
+  "enabled": true
+}

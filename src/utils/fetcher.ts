@@ -53,6 +53,88 @@ export const postFetcher = async <T>(
   return result;
 };
 
+export const putFetcher = async <T>(
+  url: string,
+  data: unknown,
+  options?: RequestInit
+): Promise<T> => {
+  const response = await fetch(url, {
+    ...options,
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${useAuthStore.getState().token}`,
+      ...(options?.headers || {})
+    },
+    body: JSON.stringify(data)
+  });
+
+  if (!response.ok) {
+
+    const body = await response.json()
+    const errorMessage = body['error']
+
+    throw new Error(errorMessage);
+  };
+
+  const result = (await response.json()) as T;
+  return result;
+};
+
+export const patchFetcher = async <T>(
+  url: string,
+  data: unknown,
+  options?: RequestInit
+): Promise<T> => {
+  const response = await fetch(url, {
+    ...options,
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${useAuthStore.getState().token}`,
+      ...(options?.headers || {})
+    },
+    body: JSON.stringify(data)
+  });
+
+  if (!response.ok) {
+    const body = await response.json()
+    const errorMessage = body['error']
+    throw new Error(errorMessage);
+  };
+
+  const result = (await response.json()) as T;
+  return result;
+};
+
+export const deleteFetcher = async <T>(
+  url: string,
+  options?: RequestInit
+): Promise<T> => {
+  const response = await fetch(url, {
+    ...options,
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${useAuthStore.getState().token}`,
+      ...(options?.headers || {})
+    }
+  });
+
+  if (!response.ok) {
+    let errorMessage = 'Error al eliminar'
+    try {
+      const body = await response.json()
+      errorMessage = body['error'] ?? errorMessage
+    } catch {
+      // noop
+    }
+    throw new Error(errorMessage);
+  };
+
+  return (await response.json()) as T;
+};
+
 export const getParams = (params?: Record<string, unknown>) => {
 
   const urlParamsArr = []

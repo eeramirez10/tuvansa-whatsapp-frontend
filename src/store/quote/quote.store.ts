@@ -34,6 +34,7 @@ export interface QuoteCustomer {
   phone?: string
   email?: string
   location?: string
+  company?: string
 }
 
 export interface QuoteLineSource {
@@ -78,7 +79,7 @@ export interface Quote {
   items: QuoteLine[]
   createdAt: string
   updatedAt: string;
-  fileKey?: string
+  fileKey?: string | null
   summary?: string
   chatThreadId?: string
   pdfSentAt?: string
@@ -91,6 +92,17 @@ export interface Quote {
   statusVersion: string
   source?: "VERSION" | "QUOTE";
   quoteMeta: QuoteMeta
+  workflowStatus?: string
+  seenAt?: string | null
+  downloadedAt?: string | null
+  erpQuoteNumber?: string | null
+  erpQuoteAt?: string | null
+  erpSystem?: string | null
+  erpInvoiceNumber?: string | null
+  invoicedAt?: string | null
+  rejectedReason?: string | null
+  workflowUpdatedAt?: string | null
+  workflowUpdatedById?: string | null
 
 }
 
@@ -187,7 +199,7 @@ const apiStore: StateCreator<QuotesState> = (set, get) => ({
   createQuote: (partial) => {
     const id = partial?.id ?? newId()
 
-    console.log({ partial })
+
     const quote: Quote = {
       id,
       quoteNumber: partial?.quoteNumber,
@@ -198,7 +210,7 @@ const apiStore: StateCreator<QuotesState> = (set, get) => ({
       items: partial?.items ?? [],
       createdAt: nowISO(),
       updatedAt: nowISO(),
-      fileKey: partial?.fileKey,
+      fileKey: partial?.fileKey ?? null,
       summary: partial?.summary,
       chatThreadId: partial?.chatThreadId,
       status: partial?.status ?? 'PENDING',
@@ -369,7 +381,6 @@ const apiStore: StateCreator<QuotesState> = (set, get) => ({
     const q = s.quotesById[quoteId];
     if (!q) return {}
 
-    console.log(quoteId)
     return {
       quotesById: {
         ...s.quotesById,

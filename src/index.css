@@ -1,8 +1,35 @@
 @import "tailwindcss";
+/* @import "tailwindcss/preflight";
+@tailwind utilities; */
+
 
 
 html, body {
   height: 100%;
   margin: 0;
   overflow: hidden;               /* el body no scrollea */
+}
+
+@layer components{
+  .btn{
+    @apply border-1 
+        border-gray-300 
+        rounded-lg 
+        px-2 
+        py-2 
+        flex 
+        items-center 
+        justify-center 
+        transition-colors
+      text-gray-600 
+       hover:shadow-lg
+       w-8
+       h-8
+       cursor-pointer
+  }
+  .btn-primary {
+    @apply hover:bg-amber-400 
+        hover:text-white 
+        hover:border-amber-400
+  }
 }

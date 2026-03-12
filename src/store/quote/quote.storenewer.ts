@@ -214,8 +214,12 @@ const apiStore: StateCreator<QuotesState> = (set, get) => ({
   hydrateFromDisplay: (display) => {
     const mapped = displayToStoreQuote(display);
     const id = mapped.id;
+    const quote: Quote = {
+      ...mapped,
+      fileKey: mapped.fileKey ?? undefined,
+    };
     set(s => ({
-      quotesById: { ...s.quotesById, [id]: mapped },
+      quotesById: { ...s.quotesById, [id]: quote }, //Aqui prro
       quoteOrder: s.quoteOrder.includes(id) ? s.quoteOrder : [id, ...s.quoteOrder],
       activeId: id,
     }));

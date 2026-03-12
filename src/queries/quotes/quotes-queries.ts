@@ -9,13 +9,18 @@ import { type Quote } from "../../store/quote/quote.store"
 
 type DateRange = { startDate: string; endDate: string }
 type ListParams = Record<string, unknown> // por si mandas {status, customerId, ...}
+type UseQuotesOptions = {
+  params?: ListParams
+  range?: DateRange
+  enabled?: boolean
+}
 
 export const quotesKeys = {
   all: ["quotes"] as const,
   list: (params?: ListParams, range?: DateRange) =>
     [...quotesKeys.all, "list", params ?? {}, range ?? {}] as const,
   detail: (id: string) => [...quotesKeys.all, "detail", { id }] as const,
-  countByRange: (range: DateRange) => [...quotesKeys.all, "count", range] as const,
+  countByRange: (params: ListParams) => [...quotesKeys.all, "count", params] as const,
 }
 
 const fmt = (d: Dayjs) => d.format("DD-MM-YYYY")
@@ -28,10 +33,12 @@ const monthRange = (): DateRange => ({
   endDate: fmt(dayjs().endOf("month")),
 })
 
-export const useQuotes = (params?: ListParams, range?: DateRange) => {
+export const useQuotes = ({ params, range, enabled = true }: UseQuotesOptions = {}) => {
+  const mergedParams = { ...(params ?? {}), ...(range ?? {}) }
   return useQuery({
     queryKey: quotesKeys.list(params, range),
-    queryFn: () => getQuotes(params ?? {}, range),
+    queryFn: () => getQuotes({}, mergedParams),
+    enabled,
     staleTime: 30_000,
     gcTime: 5 * 60_000,
     // Mantén datos anteriores mientras llega la nueva respuesta
@@ -43,7 +50,7 @@ export const useQuote = (id?: string) => {
 
 
 
- 
+
 
   const queryClient = useQueryClient()
   return useQuery({
@@ -66,23 +73,24 @@ export const useQuote = (id?: string) => {
   })
 }
 
-export const useQuotesCountByRange = (range: DateRange, enabled = true) => {
+export const useQuotesCountByRange = (range: DateRange, params?: ListParams, enabled = true) => {
+  const mergedParams = { ...(params ?? {}), ...range }
   return useQuery({
-    queryKey: quotesKeys.countByRange(range),
-    queryFn: () => getQuotes({}, range),
+    queryKey: quotesKeys.countByRange(mergedParams),
+    queryFn: () => getQuotes({}, mergedParams),
     enabled,
-    select: (data) => data.items.length,
+    select: (data) => data.total,
     staleTime: 15_000,
     gcTime: 2 * 60_000,
   })
 }
 
-export const useTotalQuotesToday = () => {
+export const useTotalQuotesToday = (params?: ListParams, enabled = true) => {
   const range = useMemo(() => todayRange(), [])
-  return useQuotesCountByRange(range)
+  return useQuotesCountByRange(range, params, enabled)
 }
 
-export const useTotalQuotesMonthly = () => {
+export const useTotalQuotesMonthly = (params?: ListParams, enabled = true) => {
   const range = useMemo(() => monthRange(), [])
-  return useQuotesCountByRange(range)
+  return useQuotesCountByRange(range, params, enabled)
 }

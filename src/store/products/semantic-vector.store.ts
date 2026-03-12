@@ -78,7 +78,7 @@ const storeApi: StateCreator<SemanticVectorState> = (set) => ({
           try {
             const data = await InventoryService.getAvailabilityById(id, signal)
 
-            console.log({ data })
+
 
             return [id, data] as const
           } catch {
@@ -103,6 +103,8 @@ const storeApi: StateCreator<SemanticVectorState> = (set) => ({
       }))
     } catch (e) {
 
+
+
       if (e instanceof Error) {
         const msg = e?.message ?? 'Unknown error'
         set((state) => ({
@@ -120,6 +122,8 @@ const storeApi: StateCreator<SemanticVectorState> = (set) => ({
         }))
 
       }
+
+      throw new Error('Error[ semantic vector store searchRow]')
 
     }
   },

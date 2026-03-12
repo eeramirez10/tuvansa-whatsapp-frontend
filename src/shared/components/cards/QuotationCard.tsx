@@ -1,5 +1,5 @@
 import React, { useState, type FC, type PropsWithChildren } from "react"
-import { Maximize, Minimize, Sparkles } from "lucide-react"
+import { Building, Mail, MapPin, Maximize, Minimize, Phone, Sparkles } from "lucide-react"
 import { useUiBoundStore } from "../../../store/ui/useUiBoundStore"
 import { useQuoteStore, type QuoteLine } from "../../../store/quote/quote.store"
 import { QuoteItemsTableWithInputs } from "../tables/QuoteItemsTableWithInputs"
@@ -57,6 +57,7 @@ export const QuotationCard = () => {
       quoteId: quote.id,
       storeQuote: {
         ...quote,
+        fileKey: quote.fileKey ?? undefined,
         items: quote.items.map((i) => ({
           ...i,
           qty: +i.qty,
@@ -149,12 +150,32 @@ export const QuotationCard = () => {
           <h3 className='uppercase text-sm font-medium text-gray-500 mb-2'>Cliente</h3>
           <div className='flex items-center space-x-3'>
 
-            <img className='h-10 rounded-full' src="https://static.photos/people/200x200/5" alt="" />
+            <img className='h-10 rounded-full' src="https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png" alt="" />
             <div className='space-y-0.5'>
               <h2 className='text-md font-semibold'>{customer?.name} {customer?.lastname}</h2>
-              <p className='text-xs text-gray-500' >{customer?.phone}</p>
-              <p className='text-xs text-gray-500'>{customer?.email}</p>
-              <p className='text-xs text-gray-500'>{customer?.location}</p>
+              <div className="flex items-center gap-2">
+                <Phone className="h-3 w-3" />
+                <p className='text-xs text-gray-500' >  {customer?.phone}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail className="h-3 w-3" />
+                <p className='text-xs text-gray-500'>{customer?.email}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPin className="h-3 w-3" />
+                <p className='text-xs text-gray-500'>{customer?.location}</p>
+              </div>
+              {
+                customer?.company && (
+                  <div className="flex items-center gap-2">
+                    <Building className="h-3 w-3" />
+                    <p className='text-xs text-gray-500'>{customer?.company}</p>
+                  </div>
+                )
+              }
+
+
+
             </div>
           </div>
         </div>
@@ -163,7 +184,7 @@ export const QuotationCard = () => {
           <div className=' items-center space-x-3'>
 
             <p className='text-xs text-gray-600'>
-              <span className='text-gray-800'>Fecha:</span>  {dateFormat(quote?.createdAt ?? '0')}
+              <span className='text-gray-800'>Fecha:</span>  {quote?.quoteMeta.quoteCreatedAt ? dateFormat(quote?.quoteMeta?.quoteCreatedAt) : ''}
             </p>
             <p className='text-xs text-gray-600'>
               <span className='text-gray-900'>Generada por:</span>  AI Agente

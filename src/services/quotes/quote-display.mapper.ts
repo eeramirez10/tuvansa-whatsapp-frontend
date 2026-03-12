@@ -1,5 +1,6 @@
 import type { User } from "../../interfaces/user.interface";
 import type { Quote, QuoteLine } from "../../store/quote/quote.store";
+import type { Customer } from "./types";
 
 
 type DisplayItem = {
@@ -33,14 +34,7 @@ type DisplayQuote = {
   chatThreadId: string,
   summary: string,
   items?: DisplayItem[];
-  customer: {
-    id: string;
-    name: string;
-    lastname: string | null;
-    phone: string | null;
-    email: string | null;
-    location: string | null;
-  };
+  customer: Customer
 };
 
 type DisplayVersion = {
@@ -115,7 +109,7 @@ export function displayToStoreQuote(display: DisplayResult): Quote {
     cost: toNum(it.cost, 0),                 // lo sigues llenando al elegir disponibilidad
     currency: 'MXN',  // tu tipo Currency
     price: toNumOrNull(it.price),
-    margin: it.marginPct ?? null,               // tu store lo calcula cuando cambias price/cost
+    margin: it.marginPct ? +it.marginPct : null,               // tu store lo calcula cuando cambias price/cost
     source: undefined,
   }));
 
@@ -134,6 +128,7 @@ export function displayToStoreQuote(display: DisplayResult): Quote {
       phone: quote.customer.phone ?? undefined,
       email: quote.customer.email ?? undefined,
       location: quote.customer.location ?? undefined,
+      company: quote.customer.company ?? undefined
     },
     items,
     createdAt: quote.createdAt,

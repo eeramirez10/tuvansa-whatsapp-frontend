@@ -7,6 +7,10 @@ interface Option {
   pageSize: number
 }
 
+interface QueryOptions {
+  enabled?: boolean
+}
+
 export const messageKeys = {
   all: ['chats'] as const,
   list: (options?: Option) => [...messageKeys.all, 'list', options] as const,
@@ -21,21 +25,21 @@ const getCustomerChats = async (options: Record<string, unknown>) => {
   return data?.map((d) => ({ ...d, messages: d.messages.filter((m) => m.role === 'user') }))
 }
 
-export const useChats = (options?: Option) => {
+export const useChats = (options?: Option, queryOptions?: QueryOptions) => {
 
   return useQuery({
     queryKey: messageKeys.list(),
     queryFn: () => getChats(options as unknown as Record<string, unknown>),
-
+    enabled: queryOptions?.enabled ?? true
   })
 
 }
 
-export const useChatsCustomers = (options?: Option) => {
+export const useChatsCustomers = (options?: Option, queryOptions?: QueryOptions) => {
 
   return useQuery({
     queryKey: messageKeys.listChatsOnlyCustomer(),
     queryFn: () => getCustomerChats(options as unknown as Record<string, unknown>),
-
+    enabled: queryOptions?.enabled ?? true
   })
 }

@@ -6,12 +6,13 @@ export interface User {
   lastname: string
   username: string
   email: string
-  phone: string
+  phone?: string | null
   role: string
-  isActive: string
+  isActive: boolean | string
+  allowWhatsappAssistant?: boolean
   createdAt: string
   updatedAt: string
-  branchOffice: BranchOffice
+  branchOffice?: BranchOffice | null
+  branchOffices?: BranchOffice[]
 
 }
-
