@@ -2,12 +2,13 @@ import { createBrowserRouter, redirect, } from 'react-router';
 import { Home } from "../pages/home/Home";
 import { Quotes } from "../pages/quotes/Quotes";
 import { AppLayout } from "../layouts/AppLayout";
-import { QuoteDetail } from "../pages/quote/QuoteDetail";
+import { QuoteWorkflowDetail } from "../pages/quote/QuoteWorkflowDetail";
 import { Login } from "../pages/auth/Login";
 import { AuthLayout } from "../layouts/AuthLayout";
 import { UserProfile } from "../pages/user/UserProfile";
 import { UsersList } from "../pages/user/UsersList";
 import { UserCreate } from "../pages/user/UserCreate";
+import { BranchCreate } from "../pages/branch/BranchCreate";
 
 
 export const router = createBrowserRouter([
@@ -34,10 +35,10 @@ export const router = createBrowserRouter([
         }
       },
       {
-        path: '/quotes/:id',
-        Component: QuoteDetail,
+        path: '/quotes/workflow/:id',
+        Component: QuoteWorkflowDetail,
         handle: {
-          title: 'Detalle de Cotizacion'
+          title: 'Detalle de Cotización'
         }
       },
       {
@@ -52,6 +53,13 @@ export const router = createBrowserRouter([
         Component: UserCreate,
         handle: {
           title: 'Nuevo usuario'
+        }
+      },
+      {
+        path: '/branchs/new',
+        Component: BranchCreate,
+        handle: {
+          title: 'Sucursales'
         }
       },
       {

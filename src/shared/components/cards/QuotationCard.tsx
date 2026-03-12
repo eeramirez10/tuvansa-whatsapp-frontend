@@ -57,6 +57,7 @@ export const QuotationCard = () => {
       quoteId: quote.id,
       storeQuote: {
         ...quote,
+        fileKey: quote.fileKey ?? undefined,
         items: quote.items.map((i) => ({
           ...i,
           qty: +i.qty,

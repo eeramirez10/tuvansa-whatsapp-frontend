@@ -1,6 +1,7 @@
 import { envs } from "../../config/envs";
 import type { QuoteCustomer, Quote } from "../../store/quote/quote.store";
-import { fetcher, postFetcher } from "../../utils/fetcher";
+import { deleteFetcher, fetcher, patchFetcher, postFetcher } from "../../utils/fetcher";
+import { useAuthStore } from "../../store/auth/auth.store";
 
 import { displayToStoreQuote, type DisplayResult } from "./quote-display.mapper";
 import { quoteMapper } from "./quotesMapper";
@@ -27,28 +28,34 @@ interface GetAttachedFileResponse {
   url: string
 }
 
+export interface UpdateQuoteWorkflowPayload {
+  workflowStatus: 'VIEWED' | 'DOWNLOADED' | 'IN_PROGRESS' | 'QUOTED' | 'REJECTED' | 'INVOICED'
+  erpQuoteNumber?: string
+  erpSystem?: string
+  erpInvoiceNumber?: string
+  rejectedReason?: string
+}
+
 
 export const getQuotes = async (options: RequestInit, params?: { [key: string]: unknown; }) => {
 
 
-  const obj: Record<string, unknown> = {}
-  let urlParams = ''
+  const query = new URLSearchParams()
 
-  const pageValue = params?.page ?? 1
-  const pageSize = params?.size ?? 5
+  const pageValue = Number(params?.page ?? 1)
+  const pageSize = Number(params?.pageSize ?? params?.size ?? 5)
 
-  if (params?.startDate) {
-    obj.startDate = params?.startDate
-    obj.endDate = params?.endDate
-  }
+  query.set('page', `${pageValue}`)
+  query.set('pageSize', `${pageSize}`)
 
-  for (const [key, value] of Object.entries(obj)) {
-
-    urlParams += `&${key}=${value}`
+  for (const [key, value] of Object.entries(params ?? {})) {
+    if (value === undefined || value === null || value === '') continue
+    if (key === 'page' || key === 'pageSize' || key === 'size') continue
+    query.set(key, `${value}`)
   }
 
   const resp = await fetcher<PageResult<Quote[]>>(
-    `${envs.URL}/quotes?page=${pageValue}&pageSize=${pageSize}${urlParams}`,
+    `${envs.URL}/quotes?${query.toString()}`,
     options
   )
 
@@ -134,3 +141,66 @@ export const getAttachedFile = async (filename: string): Promise<GetAttachedFile
   return resp;
 }
 
+export const getQuoteAttachmentFileBlob = async (quoteId: string): Promise<Blob> => {
+  const response = await fetch(`${envs.URL}/quotes/${quoteId}/attachment-file`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${useAuthStore.getState().token}`
+    }
+  })
+
+  if (!response.ok) {
+    let errorMessage = 'No se pudo descargar el archivo adjunto'
+    try {
+      const body = await response.json() as Record<string, unknown>
+      errorMessage = `${body.error ?? errorMessage}`
+    } catch {
+      // noop
+    }
+    throw new Error(errorMessage)
+  }
+
+  return await response.blob()
+}
+
+export const updateQuoteWorkflowStatus = async (
+  quoteId: string,
+  payload: UpdateQuoteWorkflowPayload
+) => {
+  return await patchFetcher<Record<string, unknown>>(
+    `${envs.URL}/quotes/${quoteId}/workflow-status`,
+    payload
+  );
+}
+
+export const saveQuoteExtractionResult = async (
+  quoteId: string,
+  payload: {
+    jobId?: string
+    status?: string
+    result?: {
+      items?: Array<unknown>
+      file_name?: string
+      file_type?: string
+      items_count?: number
+    }
+  }
+) => {
+  return await postFetcher<Record<string, unknown>>(
+    `${envs.URL}/quotes/${quoteId}/extraction-result`,
+    {
+      jobId: payload.jobId,
+      status: payload.status,
+      items: payload.result?.items ?? [],
+      fileName: payload.result?.file_name,
+      fileType: payload.result?.file_type,
+      itemsCount: payload.result?.items_count
+    }
+  )
+}
+
+export const deleteQuoteById = async (quoteId: string) => {
+  return await deleteFetcher<Record<string, unknown>>(
+    `${envs.URL}/quotes/${quoteId}`
+  )
+}

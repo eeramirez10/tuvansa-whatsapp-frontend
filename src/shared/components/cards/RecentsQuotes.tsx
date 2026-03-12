@@ -1,13 +1,15 @@
-import { MapPin, Phone } from 'lucide-react'
+import { Building2, MapPin, Phone } from 'lucide-react'
 import type { FC } from 'react'
 
 import { Link, useNavigate } from 'react-router'
 import type { Quote } from '../../../store/quote/quote.store'
+import { useAuth } from '../../../hooks/useAuth'
+import { getWorkflowStatusClassName, getWorkflowStatusLabel } from '../../constants/quote-workflow'
 
 interface QuoteItem {
   quoteNumber: string,
   customerName: string
-  status: string
+  workflowStatus: string
   description: string
 }
 
@@ -19,6 +21,9 @@ interface Props {
 }
 
 export const RecentsQuotes: FC<Props> = ({ quotes, isLoading }) => {
+  const { user } = useAuth()
+  const isAdmin = `${user?.role ?? ''}`.toUpperCase() === 'ADMIN'
+
   return (
     <div className='bg-white rounded-md shadow-md mb-6'>
       <div className='px-6 py-4 border-b border-gray-200'>
@@ -43,7 +48,9 @@ export const RecentsQuotes: FC<Props> = ({ quotes, isLoading }) => {
 
               quotes.map((q) => {
 
-                const { id, quoteNumber = '0', customer, status, summary = '', createdAt } = q
+                const { id, quoteNumber = '0', customer, summary = '', createdAt } = q
+                const isNew = `${q.workflowStatus ?? ''}`.toUpperCase() === 'NEW'
+                const maskCustomer = !isAdmin && isNew
                 return (
 
 
@@ -51,11 +58,12 @@ export const RecentsQuotes: FC<Props> = ({ quotes, isLoading }) => {
                     key={id}
                     id={id}
                     quoteNumber={quoteNumber.toString() ?? ''}
-                    customerName={`${customer?.name} ${customer?.lastname}`}
-                    status={status}
-                    description={summary ?? ''}
-                    phone={customer?.phone}
-                    location={customer?.location}
+                    customerName={maskCustomer ? 'Nueva cotización' : `${customer?.name} ${customer?.lastname}`}
+                    workflowStatus={`${q.workflowStatus ?? 'NEW'}`}
+                    description={maskCustomer ? 'Pendiente por revisar' : (summary ?? '')}
+                    phone={maskCustomer ? '—' : customer?.phone}
+                    location={maskCustomer ? '—' : customer?.location}
+                    branch={q.branch ?? 'Sin sucursal'}
                     createdAt={createdAt}
                   />
                 )
@@ -81,10 +89,11 @@ interface QuoteItemProps {
   id: string
   quoteNumber: string,
   customerName: string
-  status: string
+  workflowStatus: string
   description?: string
   phone?: string
   location?: string
+  branch?: string
   createdAt?: string
 
 }
@@ -95,10 +104,11 @@ const QuoteItem: FC<QuoteItemProps> = (props: QuoteItemProps) => {
     id,
     quoteNumber,
     customerName,
-    status,
+    workflowStatus,
     description,
     phone,
     location,
+    branch,
     createdAt
   } = props
   
@@ -106,7 +116,7 @@ const QuoteItem: FC<QuoteItemProps> = (props: QuoteItemProps) => {
   return (
     <div
       className='p-4 border-b border-1.5 border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors'
-      onClick={() => navigate(`/quotes/${id}`)}
+      onClick={() => navigate(`/quotes/workflow/${id}`)}
     >
       <div className='flex justify-between items-center mb-2'>
         <div>
@@ -115,7 +125,7 @@ const QuoteItem: FC<QuoteItemProps> = (props: QuoteItemProps) => {
         </div>
 
 
-        <BadgeStatus status={status} />
+        <BadgeStatus workflowStatus={workflowStatus} />
       </div>
 
       <p className='text-gray-700 mb-2 text-sm'>{description}</p>
@@ -130,6 +140,10 @@ const QuoteItem: FC<QuoteItemProps> = (props: QuoteItemProps) => {
           <div className='flex justify-center items-center '>
             <MapPin size={14} className='text-gray-500 mr-1' />
             <span className='text-xs text-gray-500'>{location}</span>
+          </div>
+          <div className='flex justify-center items-center '>
+            <Building2 size={14} className='text-gray-500 mr-1' />
+            <span className='text-xs text-gray-500'>Sucursal: {branch ?? 'Sin sucursal'}</span>
           </div>
 
         </div>
@@ -284,26 +298,10 @@ export const QuoteItemSkelton = () => {
 }
 
 
-const BadgeStatus = ({ status }: { status: string }) => {
-
-
-
-
-
-  const bgColor = status === 'PENDING' ? 'bg-yellow-200 text-yellow-70' : status === 'QUOTED' ? 'bg-blue-200 text-blue-70' : 'bg-green-200 text-green-70'
-
-  const badgeStyles = ` 
-    px-2 py-1  
-     font-semibold 
-      rounded-2xl 
-      uppercase 
-      text-xs 
-      ${bgColor}
-    `
-
-
-
+const BadgeStatus = ({ workflowStatus }: { workflowStatus: string }) => {
   return (
-    <span className={` ${badgeStyles}  px-2 py-1  font-semibold rounded-2xl uppercase text-xs `}>{status}</span>
+    <span className={`px-2 py-1 font-semibold rounded-2xl uppercase text-xs ${getWorkflowStatusClassName(workflowStatus)}`}>
+      {getWorkflowStatusLabel(workflowStatus)}
+    </span>
   )
 }

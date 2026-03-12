@@ -1,16 +1,40 @@
 import { QuotesTable } from '../../shared/components/tables/QuotesTable'
 import { useQuotes } from '../../queries/quotes/quotes-queries'
 import { ChevronLeft, ChevronRight, ChevronsLeftIcon, ChevronsRightIcon } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useAuth } from '../../hooks/useAuth'
+import { QUOTE_WORKFLOW_STATUS_OPTIONS, type QuoteWorkflowStatusValue } from '../../shared/constants/quote-workflow'
 
 
 const PAGE_SIZE = 10
 
 export const Quotes = () => {
+  const { user } = useAuth()
+  const isAdmin = `${user?.role ?? ''}`.toUpperCase() === 'ADMIN'
+  const userBranchIds = user?.branchOffices?.map((branch) => branch.id) ?? []
+  const canLoadQuotes = isAdmin || userBranchIds.length > 0
 
   const [page, setPage] = useState(1)
+  const [workflowStatus, setWorkflowStatus] = useState<'ALL' | QuoteWorkflowStatusValue>('ALL')
 
-  const { data,  isFetching } = useQuotes({ page, pageSize: PAGE_SIZE })
+  useEffect(() => {
+    setPage(1)
+  }, [workflowStatus])
+
+  const queryParams = useMemo(() => {
+    const base = {
+      page,
+      pageSize: PAGE_SIZE,
+      ...(workflowStatus === 'ALL' ? {} : { workflowStatus })
+    }
+
+    return base
+  }, [page, workflowStatus])
+
+  const { data,  isFetching } = useQuotes({
+    params: queryParams,
+    enabled: canLoadQuotes
+  })
 
  
 
@@ -18,16 +42,35 @@ export const Quotes = () => {
     <div>
 
       <div className='flex items-center space-x-2'>
-
-        <button className='px-4 py-2 text-xs font-semibold text-gray-800 border-1 border-gray-300 bg-white rounded-md shadow'>Todas</button>
-        <button className='px-4 py-2 text-xs font-semibold text-gray-800 border-1 border-gray-300 bg-white rounded-md shadow'>Pendientes</button>
-        <button className='px-4 py-2 text-xs font-semibold text-gray-800 border-1 border-gray-300 bg-white rounded-md shadow'>Aprobadas</button>
+        <button
+          onClick={() => setWorkflowStatus('ALL')}
+          className={`px-4 py-2 text-xs font-semibold border-1 border-gray-300 rounded-md shadow transition ${
+            workflowStatus === 'ALL'
+              ? 'bg-amber-500 text-white border-amber-500'
+              : 'bg-white text-gray-800'
+          }`}
+        >
+          Todas
+        </button>
+        {QUOTE_WORKFLOW_STATUS_OPTIONS.map((option) => (
+          <button
+            key={option.value}
+            onClick={() => setWorkflowStatus(option.value)}
+            className={`px-4 py-2 text-xs font-semibold border-1 border-gray-300 rounded-md shadow transition ${
+              workflowStatus === option.value
+                ? 'bg-amber-500 text-white border-amber-500'
+                : 'bg-white text-gray-800'
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
       </div>
 
 
       <div className=' bg-white mt-6 shadow-md rounded-sm overflow-x-auto'>
 
-        <QuotesTable quotes={data?.items} isLoading={isFetching} />
+        <QuotesTable quotes={data?.items} isLoading={isFetching} isAdmin={isAdmin} />
 
         <Pagination
           onPageChange={setPage}
@@ -39,6 +82,12 @@ export const Quotes = () => {
         />
 
       </div>
+
+      {!isAdmin && userBranchIds.length === 0 && (
+        <div className='mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700'>
+          Tu usuario no tiene sucursal asignada. No se pueden mostrar cotizaciones.
+        </div>
+      )}
 
 
     </div>

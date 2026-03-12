@@ -83,7 +83,16 @@ export const UserProfile = () => {
     notify.info('Foto lista para subir', { description: 'Envía al backend cuando el endpoint esté disponible.' })
   }
 
-  const branchCreated = useMemo(() => user?.branchOffice?.createdAt ? dateFormat(user.branchOffice.createdAt) : '—', [user?.branchOffice?.createdAt])
+  const primaryBranch = user?.branchOffices?.[0] ?? user?.branchOffice
+  const branchNames = useMemo(
+    () => (user?.branchOffices ?? (user?.branchOffice ? [user.branchOffice] : [])).map((branch) => branch.name).join(', '),
+    [user?.branchOffice, user?.branchOffices]
+  )
+  const branchAddresses = useMemo(
+    () => (user?.branchOffices ?? (user?.branchOffice ? [user.branchOffice] : [])).map((branch) => branch.address).filter(Boolean).join(', '),
+    [user?.branchOffice, user?.branchOffices]
+  )
+  const branchCreated = useMemo(() => primaryBranch?.createdAt ? dateFormat(primaryBranch.createdAt) : '—', [primaryBranch?.createdAt])
   const created = useMemo(() => user?.createdAt ? dateFormat(user.createdAt) : '—', [user?.createdAt])
   const updated = useMemo(() => user?.updatedAt ? dateFormat(user.updatedAt) : '—', [user?.updatedAt])
 
@@ -217,8 +226,8 @@ export const UserProfile = () => {
             <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
               <div className='space-y-4'>
                 <h4 className='text-sm font-semibold text-gray-500'>Sucursal</h4>
-                <InfoRow icon={<Building2 className='h-4 w-4' />} label='Sucursal' value={user.branchOffice?.name} />
-                <InfoRow icon={<MapPin className='h-4 w-4' />} label='Dirección' value={user.branchOffice?.address} />
+                <InfoRow icon={<Building2 className='h-4 w-4' />} label='Sucursales' value={branchNames} />
+                <InfoRow icon={<MapPin className='h-4 w-4' />} label='Direcciones' value={branchAddresses} />
                 <InfoRow icon={<CalendarClock className='h-4 w-4' />} label='Creada' value={branchCreated} />
               </div>
               <div className='space-y-4'>

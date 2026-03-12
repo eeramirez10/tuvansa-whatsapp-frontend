@@ -1,4 +1,4 @@
-import { DollarSign, LucideLayoutDashboard, Power, UserRound } from 'lucide-react'
+import { Building2, DollarSign, LucideLayoutDashboard, Power, UserRound, Users } from 'lucide-react'
 import { NavLink } from 'react-router'
 import { useUiBoundStore } from '../../store/ui/useUiBoundStore'
 import { useAuth } from '../../hooks/useAuth'
@@ -32,11 +32,15 @@ export const SideBar = () => {
   const nav = [
     { name: 'Dashboard', to: '/home', icon: <LucideLayoutDashboard /> },
     { name: 'Cotizaciones', to: '/quotes', icon: <DollarSign /> },
-    // { name: 'Usuarios', to: '/users', icon: <Users /> },
     { name: 'Perfil', to: '/user', icon: <UserRound /> },
     // { name: 'Chats', to: '/', icon: <MessageSquareTextIcon /> }
 
   ]
+
+  if (`${user?.role ?? ''}`.toUpperCase() === 'ADMIN') {
+    nav.splice(2, 0, { name: 'Usuarios', to: '/users', icon: <Users /> })
+    nav.splice(3, 0, { name: 'Sucursales', to: '/branchs/new', icon: <Building2 /> })
+  }
 
   return (
 

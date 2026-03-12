@@ -5,6 +5,9 @@ import { dateFormat } from "../../utils/dateFormat";
 
 export const quoteMapper = (quote: { [key: string]: any; }): Quote => {
 
+  const branchLabel = typeof quote.branch === 'string'
+    ? quote.branch
+    : quote.branch?.name ?? ''
 
 
   return {
@@ -20,8 +23,20 @@ export const quoteMapper = (quote: { [key: string]: any; }): Quote => {
     taxRate: 0.16,
     updatedAt: "",
     status: quote.status ?? 'Pendiente',
+    workflowStatus: quote.workflowStatus ?? 'NEW',
+    seenAt: quote.seenAt ?? null,
+    downloadedAt: quote.downloadedAt ?? null,
+    erpQuoteNumber: quote.erpQuoteNumber ?? null,
+    erpQuoteAt: quote.erpQuoteAt ?? null,
+    erpSystem: quote.erpSystem ?? null,
+    erpInvoiceNumber: quote.erpInvoiceNumber ?? null,
+    invoicedAt: quote.invoicedAt ?? null,
+    rejectedReason: quote.rejectedReason ?? null,
+    workflowUpdatedAt: quote.workflowUpdatedAt ?? null,
+    workflowUpdatedById: quote.workflowUpdatedById ?? null,
     version: "",
     statusVersion: "",
+    branch: branchLabel || undefined,
     quoteMeta: {
       pdfSentAt: null,
       quoteCreatedAt: null,

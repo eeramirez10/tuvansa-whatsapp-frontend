@@ -92,6 +92,17 @@ export interface Quote {
   statusVersion: string
   source?: "VERSION" | "QUOTE";
   quoteMeta: QuoteMeta
+  workflowStatus?: string
+  seenAt?: string | null
+  downloadedAt?: string | null
+  erpQuoteNumber?: string | null
+  erpQuoteAt?: string | null
+  erpSystem?: string | null
+  erpInvoiceNumber?: string | null
+  invoicedAt?: string | null
+  rejectedReason?: string | null
+  workflowUpdatedAt?: string | null
+  workflowUpdatedById?: string | null
 
 }
 

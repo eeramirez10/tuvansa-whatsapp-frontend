@@ -14,8 +14,10 @@ export interface User {
   isActive:  boolean;
   createdAt: Date;
   updatedAt: Date;
-  branchId:  string;
-  branch:    Branch;
+  branchId?: string;
+  branch?:   Branch;
+  branchIds?: string[];
+  branches?: Branch[];
 }
 
 export interface Branch {
