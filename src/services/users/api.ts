@@ -12,10 +12,12 @@ import {
   type NotificationTestResponse,
   type NotificationTestsPayload,
   type NotificationTestsResponse,
+  type UpdateWorkflowReminderConfigPayload,
   type UpdateBranchPayload,
   type UpdateBranchResponse,
   type UpdateUserPayload,
   type UpdateUserResponse,
+  type WorkflowReminderConfigResponse,
   type UpsertNotificationSettingPayload,
   type UpsertNotificationSettingResponse,
   type UserApiResponse
@@ -82,6 +84,19 @@ export const sendNotificationTest = async (payload: NotificationTestPayload) => 
 export const sendNotificationTests = async (payload: NotificationTestsPayload = { enabledOnly: true, channel: "WHATSAPP" }) => {
   return await postFetcher<NotificationTestsResponse>(
     `${envs.URL}/users/notification-settings/test-all`,
+    payload
+  );
+};
+
+export const getWorkflowReminderConfig = async () => {
+  return await fetcher<WorkflowReminderConfigResponse>(
+    `${envs.URL}/users/workflow-reminder-config`
+  );
+};
+
+export const updateWorkflowReminderConfig = async (payload: UpdateWorkflowReminderConfigPayload) => {
+  return await putFetcher<WorkflowReminderConfigResponse>(
+    `${envs.URL}/users/workflow-reminder-config`,
     payload
   );
 };

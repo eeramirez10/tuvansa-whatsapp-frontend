@@ -5,10 +5,12 @@ import {
   createUser,
   getBranchOptions,
   getNotificationSettings,
+  getWorkflowReminderConfig,
   getUsers,
   sendNotificationTest,
   sendNotificationTests,
   updateBranch,
+  updateWorkflowReminderConfig,
   updateUser,
   upsertNotificationSetting
 } from "../../services/users/api";
@@ -17,6 +19,7 @@ import type {
   CreateUserPayload,
   NotificationTestPayload,
   NotificationTestsPayload,
+  UpdateWorkflowReminderConfigPayload,
   UpdateBranchPayload,
   UpdateUserPayload,
   UpsertNotificationSettingPayload
@@ -27,7 +30,8 @@ export const usersKeys = {
   list: () => [...usersKeys.all, "list"] as const,
   notificationSettings: (userId?: string) =>
     [...usersKeys.all, "notification-settings", { userId: userId ?? "" }] as const,
-  branches: () => [...usersKeys.all, "branches"] as const
+  branches: () => [...usersKeys.all, "branches"] as const,
+  workflowReminderConfig: () => [...usersKeys.all, "workflow-reminder-config"] as const
 };
 
 export const useUsers = () => {
@@ -49,6 +53,14 @@ export const useBranchOptions = () => {
   return useQuery({
     queryKey: usersKeys.branches(),
     queryFn: getBranchOptions
+  });
+};
+
+export const useWorkflowReminderConfig = (enabled = true) => {
+  return useQuery({
+    queryKey: usersKeys.workflowReminderConfig(),
+    queryFn: getWorkflowReminderConfig,
+    enabled
   });
 };
 
@@ -128,5 +140,15 @@ export const useSendNotificationTest = () => {
 export const useSendNotificationTests = () => {
   return useMutation({
     mutationFn: (payload?: NotificationTestsPayload) => sendNotificationTests(payload)
+  });
+};
+
+export const useUpdateWorkflowReminderConfig = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: UpdateWorkflowReminderConfigPayload) => updateWorkflowReminderConfig(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: usersKeys.workflowReminderConfig() });
+    }
   });
 };

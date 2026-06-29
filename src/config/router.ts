@@ -9,7 +9,8 @@ import { UserProfile } from "../pages/user/UserProfile";
 import { UsersList } from "../pages/user/UsersList";
 import { UserCreate } from "../pages/user/UserCreate";
 import { BranchCreate } from "../pages/branch/BranchCreate";
-
+import { QuotesReports } from '../pages/reports/QuotesReports';
+import { QuotesExecutivePrintableReport } from '../pages/reports/QuotesExecutivePrintableReport';
 
 export const router = createBrowserRouter([
 
@@ -67,6 +68,20 @@ export const router = createBrowserRouter([
         Component: UserProfile,
         handle: {
           title: 'Perfil de usuario'
+        }
+      },
+      {
+        path: '/quote-reports',
+        Component: QuotesReports,
+        handle: {
+          title: 'Reporte de cotizaciones'
+        }
+      },
+      {
+        path: '/quote-reports/executive',
+        Component: QuotesExecutivePrintableReport,
+        handle: {
+          title: 'Reporte ejecutivo imprimible'
         }
       }
     ]

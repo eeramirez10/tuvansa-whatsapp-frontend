@@ -111,6 +111,14 @@ export interface NotificationTestsResponse {
   };
 }
 
+export interface WorkflowReminderConfigResponse {
+  enabled: boolean;
+}
+
+export interface UpdateWorkflowReminderConfigPayload {
+  enabled: boolean;
+}
+
 export interface BranchSummary {
   id: string;
   name: string;
