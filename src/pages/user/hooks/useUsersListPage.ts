@@ -3,6 +3,7 @@ import { useAuth } from '../../../hooks/useAuth'
 import { notify } from '../../../lib/notifications/toast-sonner'
 import {
   useBranchOptions,
+  useDeleteNotificationSetting,
   useNotificationSettings,
   useSendNotificationTest,
   useSendNotificationTests,
@@ -68,6 +69,7 @@ export const useUsersListPage = () => {
   } = useWorkflowReminderConfig(isAdmin)
 
   const upsertNotificationSettingMutation = useUpsertNotificationSetting()
+  const deleteNotificationSettingMutation = useDeleteNotificationSetting()
   const updateUserMutation = useUpdateUser()
   const sendNotificationTestMutation = useSendNotificationTest()
   const sendNotificationTestsMutation = useSendNotificationTests()
@@ -194,6 +196,7 @@ export const useUsersListPage = () => {
   }, [settings])
 
   const isSavingNotification = upsertNotificationSettingMutation.isPending
+  const isDeletingNotification = deleteNotificationSettingMutation.isPending
   const isSavingUser = updateUserMutation.isPending
   const isSendingTest = sendNotificationTestMutation.isPending
   const isSendingAllTests = sendNotificationTestsMutation.isPending
@@ -354,6 +357,14 @@ export const useUsersListPage = () => {
     })
   }
 
+  const handleDeleteNotificationSetting = async (settingId: string) => {
+    await notify.promise(deleteNotificationSettingMutation.mutateAsync(settingId), {
+      loading: 'Eliminando configuración...',
+      success: () => 'Configuración eliminada',
+      error: (error: Error) => error.message || 'No se pudo eliminar la configuración',
+    })
+  }
+
   return {
     dateFormat,
     isAdmin,
@@ -384,6 +395,7 @@ export const useUsersListPage = () => {
     selectedBranchToAdd,
     setSelectedBranchToAdd,
     isSavingNotification,
+    isDeletingNotification,
     isSavingUser,
     isSendingTest,
     isSendingAllTests,
@@ -397,6 +409,7 @@ export const useUsersListPage = () => {
     handleSendTest,
     handleSendAllTests,
     handleSaveWorkflowReminderConfig,
+    handleDeleteNotificationSetting,
     resetEditForm,
   }
 }

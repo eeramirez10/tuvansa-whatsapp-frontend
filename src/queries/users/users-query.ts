@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   assignBranchManager,
   createBranch,
+  deleteNotificationSetting,
   createUser,
   getBranchOptions,
   getNotificationSettings,
@@ -149,6 +150,18 @@ export const useUpdateWorkflowReminderConfig = () => {
     mutationFn: (payload: UpdateWorkflowReminderConfigPayload) => updateWorkflowReminderConfig(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: usersKeys.workflowReminderConfig() });
+    }
+  });
+};
+
+
+export const useDeleteNotificationSetting = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (settingId: string) => deleteNotificationSetting(settingId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: usersKeys.notificationSettings() });
+      queryClient.invalidateQueries({ queryKey: usersKeys.list() });
     }
   });
 };

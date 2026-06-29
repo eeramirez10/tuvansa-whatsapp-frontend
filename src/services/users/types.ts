@@ -72,6 +72,10 @@ export interface UpsertNotificationSettingResponse {
   setting: NotificationSetting;
 }
 
+export interface DeleteNotificationSettingResponse {
+  ok: boolean;
+}
+
 export interface NotificationTestPayload {
   userId: string;
   event: string;

@@ -43,6 +43,7 @@ export const UsersList = () => {
     selectedBranchToAdd,
     setSelectedBranchToAdd,
     isSavingNotification,
+    isDeletingNotification,
     isSavingUser,
     isSendingTest,
     isSendingAllTests,
@@ -56,6 +57,7 @@ export const UsersList = () => {
     handleSendTest,
     handleSendAllTests,
     handleSaveWorkflowReminderConfig,
+    handleDeleteNotificationSetting,
     resetEditForm,
   } = useUsersListPage()
 
@@ -192,9 +194,11 @@ export const UsersList = () => {
         notificationTestResults={notificationTestResults}
         isSendingTest={isSendingTest}
         isSendingAllTests={isSendingAllTests}
+        isDeletingNotification={isDeletingNotification}
         handleLoadSettingInForm={handleLoadSettingInForm}
         handleSendTest={handleSendTest}
         handleSendAllTests={handleSendAllTests}
+        handleDeleteNotificationSetting={handleDeleteNotificationSetting}
         openNotificationsModalFromSetting={openNotificationsFromSetting}
       />
     </div>

@@ -1,5 +1,5 @@
 import { envs } from "../../config/envs";
-import { fetcher, postFetcher, putFetcher } from "../../utils/fetcher";
+import { deleteFetcher, fetcher, postFetcher, putFetcher } from "../../utils/fetcher";
 import {
   type AssignBranchManagerResponse,
   type BranchSummary,
@@ -7,6 +7,7 @@ import {
   type CreateBranchResponse,
   type CreateUserPayload,
   type CreateUserResponse,
+  type DeleteNotificationSettingResponse,
   type NotificationSettingsResponse,
   type NotificationTestPayload,
   type NotificationTestResponse,
@@ -43,6 +44,12 @@ export const upsertNotificationSetting = async (payload: UpsertNotificationSetti
     payload
   );
   return data.setting;
+};
+
+export const deleteNotificationSetting = async (settingId: string) => {
+  return await deleteFetcher<DeleteNotificationSettingResponse>(
+    `${envs.URL}/users/notification-settings/${settingId}`
+  );
 };
 
 export const getBranchOptions = async () => {

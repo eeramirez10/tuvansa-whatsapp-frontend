@@ -1,4 +1,4 @@
-import { BellRing, Pencil } from 'lucide-react'
+import { BellRing, Pencil, Trash2 } from 'lucide-react'
 import type { NotificationSetting, NotificationTestResult } from '../../services/users/types'
 import { EVENT_OPTIONS, SCOPE_OPTIONS, TEMPLATE_OPTIONS } from './UserNotificationOptions'
 import { StatusPill } from './UserUi'
@@ -12,9 +12,11 @@ interface UserNotificationTesterModalProps {
   notificationTestResults: NotificationTestResult[]
   isSendingTest: boolean
   isSendingAllTests: boolean
+  isDeletingNotification: boolean
   handleLoadSettingInForm: (setting: NotificationSetting) => void
   handleSendTest: (payload: { userId: string; event: string; channel: string; template: string }) => Promise<void>
   handleSendAllTests: () => Promise<void>
+  handleDeleteNotificationSetting: (settingId: string) => Promise<void>
   openNotificationsModalFromSetting: (setting: NotificationSetting) => void
 }
 
@@ -26,9 +28,11 @@ export const UserNotificationTesterModal = ({
   notificationTestResults,
   isSendingTest,
   isSendingAllTests,
+  isDeletingNotification,
   handleLoadSettingInForm,
   handleSendTest,
   handleSendAllTests,
+  handleDeleteNotificationSetting,
   openNotificationsModalFromSetting,
 }: UserNotificationTesterModalProps) => {
   return (
@@ -109,7 +113,7 @@ export const UserNotificationTesterModal = ({
                       <button
                         type='button'
                         className='inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 disabled:text-blue-300'
-                        disabled={isSendingTest}
+                        disabled={isSendingTest || isDeletingNotification}
                         onClick={() =>
                           handleSendTest({
                             userId: setting.userId,
@@ -120,6 +124,17 @@ export const UserNotificationTesterModal = ({
                         }
                       >
                         <BellRing className='h-4 w-4' /> Probar
+                      </button>
+                      <button
+                        type='button'
+                        className='inline-flex items-center gap-1 text-sm font-semibold text-red-600 hover:text-red-700 disabled:text-red-300'
+                        disabled={isDeletingNotification || isSendingTest}
+                        onClick={() => {
+                          if (!window.confirm('Se eliminará la configuración de notificación por completo. ¿Deseas continuar?')) return
+                          handleDeleteNotificationSetting(setting.id)
+                        }}
+                      >
+                        <Trash2 className='h-4 w-4' /> Eliminar
                       </button>
                     </div>
                   </td>
