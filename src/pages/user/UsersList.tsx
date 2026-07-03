@@ -6,11 +6,14 @@ import { UserNotificationTesterModal } from '../../components/users/UserNotifica
 import { UserNotificationsModal } from '../../components/users/UserNotificationsModal'
 import { UsersTable } from '../../components/users/UsersTable'
 import { normalizeActive } from '../../components/users/UserUi'
+import { useAuth } from '../../hooks/useAuth'
 import type { NotificationSetting } from '../../services/users/types'
+import { canCreateUsers } from '../../services/users/constants'
 import { useUsersListPage } from './hooks/useUsersListPage'
 
 export const UsersList = () => {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [detailOpen, setDetailOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [testerOpen, setTesterOpen] = useState(false)
@@ -61,8 +64,10 @@ export const UsersList = () => {
     resetEditForm,
   } = useUsersListPage()
 
+  const canOpenUserCreate = canCreateUsers(user?.role)
+
   const activeUsers = useMemo(
-    () => filteredUsers.filter((user) => normalizeActive(user.isActive)).length,
+    () => filteredUsers.filter((userItem) => normalizeActive(userItem.isActive)).length,
     [filteredUsers],
   )
 
@@ -103,14 +108,14 @@ export const UsersList = () => {
           <div className='flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-sm'>
             <Search className='h-4 w-4 text-gray-400' />
             <input
-              className='w-full text-sm lg:w-96 border-1 border-gray-200  '
+              className='w-full text-sm lg:w-96 border-1 border-gray-200'
               placeholder='Buscar por nombre, correo o rol'
               value={filter}
               onChange={(event) => setFilter(event.target.value)}
             />
           </div>
 
-          {isAdmin ? (
+          {canOpenUserCreate ? (
             <button
               type='button'
               onClick={() => navigate('/users/new')}
@@ -140,9 +145,9 @@ export const UsersList = () => {
         />
       </div>
 
-      {!isAdmin ? (
+      {!canOpenUserCreate ? (
         <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700'>
-          Solo usuarios con rol administrador pueden gestionar notificaciones y crear usuarios.
+          Solo usuarios con rol administrador o coordinador de ventas pueden crear usuarios.
         </div>
       ) : null}
 

@@ -19,15 +19,8 @@ import type {
   UpdateUserPayload,
   UpsertNotificationSettingPayload,
 } from '../../../services/users/types'
+import { ROLE_LABELS, roleAllowsMultipleBranches } from '../../../services/users/constants'
 import { dateFormat } from '../../../utils/dateFormat'
-
-const ROLE_LABELS: Record<string, string> = {
-  ADMIN: 'Administrador',
-  USER: 'Usuario',
-  BRANCH_MANAGER: 'Gerente de sucursal',
-  SUPPORT: 'Soporte',
-  VIEWER: 'Consulta',
-}
 
 const EMPTY_EDIT_FORM: UpdateUserPayload = {
   name: '',
@@ -201,7 +194,7 @@ export const useUsersListPage = () => {
   const isSendingTest = sendNotificationTestMutation.isPending
   const isSendingAllTests = sendNotificationTestsMutation.isPending
   const isUpdatingWorkflowReminderConfig = updateWorkflowReminderConfigMutation.isPending
-  const allowsMultipleBranches = editForm.role === 'BRANCH_MANAGER'
+  const allowsMultipleBranches = roleAllowsMultipleBranches(editForm.role)
 
   const handleLoadSettingInForm = (setting: NotificationSetting) => {
     setNotificationForm({
@@ -220,12 +213,11 @@ export const useUsersListPage = () => {
 
   const handleEditRoleChange = (role: string) => {
     setEditForm((prev) => {
-      const branchIds =
-        role === 'BRANCH_MANAGER'
-          ? (prev.branchIds ?? [])
-          : (prev.branchIds ?? []).length > 0
-            ? [prev.branchIds[0]]
-            : []
+      const branchIds = roleAllowsMultipleBranches(role)
+        ? (prev.branchIds ?? [])
+        : (prev.branchIds ?? []).length > 0
+          ? [prev.branchIds[0]]
+          : []
 
       return {
         ...prev,
@@ -234,7 +226,7 @@ export const useUsersListPage = () => {
       }
     })
 
-    if (role !== 'BRANCH_MANAGER') {
+    if (!roleAllowsMultipleBranches(role)) {
       setSelectedBranchToAdd('')
     }
   }

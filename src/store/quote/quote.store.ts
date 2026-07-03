@@ -73,6 +73,7 @@ export interface Quote {
   status: "DRAFT" | "FINAL" | "PENDING"
 
   branch?: string
+  branchId?: string | null
   currency: Currency
   taxRate: number // ej. 0.16 para IVA 16%
   customer?: QuoteCustomer
@@ -103,6 +104,9 @@ export interface Quote {
   rejectedReason?: string | null
   workflowUpdatedAt?: string | null
   workflowUpdatedById?: string | null
+  assignedSeller?: User | null
+  assignedBy?: User | null
+  assignedAt?: string | null
 
 }
 

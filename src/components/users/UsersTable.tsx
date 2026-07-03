@@ -1,14 +1,7 @@
 import React from 'react'
 import { BellRing, Eye, FlaskConical, UserRound } from 'lucide-react'
 import type { User } from '../../interfaces/user.interface'
-
-const ROLE_LABELS: Record<string, string> = {
-  ADMIN: 'Administrador',
-  USER: 'Usuario',
-  BRANCH_MANAGER: 'Gerente de sucursal',
-  SUPPORT: 'Soporte',
-  VIEWER: 'Consulta',
-}
+import { ROLE_LABELS } from '../../services/users/constants'
 
 interface UsersTableProps {
   users: User[]

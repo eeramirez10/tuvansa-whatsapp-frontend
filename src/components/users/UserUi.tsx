@@ -1,13 +1,6 @@
 import type { ReactNode } from 'react'
 import { UserRound } from 'lucide-react'
-
-export const ROLE_LABELS: Record<string, string> = {
-  ADMIN: 'Administrador',
-  USER: 'Usuario',
-  BRANCH_MANAGER: 'Gerente de sucursal',
-  SUPPORT: 'Soporte',
-  VIEWER: 'Consulta',
-}
+export { ROLE_LABELS } from '../../services/users/constants'
 
 export const normalizeActive = (value: unknown): boolean => {
   if (typeof value === 'boolean') return value

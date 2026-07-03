@@ -1,14 +1,12 @@
-import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query"
-import { getQuoteById, getQuotes } from "../../services/quotes/api"
-import type { PageResult } from "../../services/quotes/types"
-import dayjs, { Dayjs } from "dayjs"
-import { useMemo } from "react"
-import { type Quote } from "../../store/quote/quote.store"
-
-
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { assignQuoteSeller, getQuoteById, getQuotes, type AssignQuoteSellerPayload } from '../../services/quotes/api'
+import type { PageResult } from '../../services/quotes/types'
+import dayjs, { Dayjs } from 'dayjs'
+import { useMemo } from 'react'
+import { type Quote } from '../../store/quote/quote.store'
 
 type DateRange = { startDate: string; endDate: string }
-type ListParams = Record<string, unknown> // por si mandas {status, customerId, ...}
+type ListParams = Record<string, unknown>
 type UseQuotesOptions = {
   params?: ListParams
   range?: DateRange
@@ -16,21 +14,21 @@ type UseQuotesOptions = {
 }
 
 export const quotesKeys = {
-  all: ["quotes"] as const,
+  all: ['quotes'] as const,
   list: (params?: ListParams, range?: DateRange) =>
-    [...quotesKeys.all, "list", params ?? {}, range ?? {}] as const,
-  detail: (id: string) => [...quotesKeys.all, "detail", { id }] as const,
-  countByRange: (params: ListParams) => [...quotesKeys.all, "count", params] as const,
+    [...quotesKeys.all, 'list', params ?? {}, range ?? {}] as const,
+  detail: (id: string) => [...quotesKeys.all, 'detail', { id }] as const,
+  countByRange: (params: ListParams) => [...quotesKeys.all, 'count', params] as const,
 }
 
-const fmt = (d: Dayjs) => d.format("DD-MM-YYYY")
+const fmt = (d: Dayjs) => d.format('DD-MM-YYYY')
 const todayRange = (): DateRange => {
   const today = fmt(dayjs())
   return { startDate: today, endDate: today }
 }
 const monthRange = (): DateRange => ({
-  startDate: fmt(dayjs().startOf("month")),
-  endDate: fmt(dayjs().endOf("month")),
+  startDate: fmt(dayjs().startOf('month')),
+  endDate: fmt(dayjs().endOf('month')),
 })
 
 export const useQuotes = ({ params, range, enabled = true }: UseQuotesOptions = {}) => {
@@ -41,35 +39,36 @@ export const useQuotes = ({ params, range, enabled = true }: UseQuotesOptions = 
     enabled,
     staleTime: 30_000,
     gcTime: 5 * 60_000,
-    // Mantén datos anteriores mientras llega la nueva respuesta
     placeholderData: keepPreviousData,
   })
 }
 
 export const useQuote = (id?: string) => {
-
-
-
-
-
   const queryClient = useQueryClient()
   return useQuery({
-    queryKey: id ? quotesKeys.detail(id) : ["__disabled__"],
+    queryKey: id ? quotesKeys.detail(id) : ['__disabled__'],
     queryFn: async () => {
       return await getQuoteById(id!)
-
-
-
     },
     enabled: Boolean(id),
-    // Usa datos de la lista para "hydratar" el detalle instantáneamente
     initialData: () => {
       if (!id) return undefined
       const list = queryClient.getQueryData<PageResult<Quote>>(quotesKeys.list({}, undefined))
       return list?.items.find((q) => q.id === id)
     },
-    // staleTime: 60_000, // 1 min: detalles cambian menos
-    // gcTime: 10 * 60_000,
+  })
+}
+
+export const useAssignQuoteSeller = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ quoteId, payload }: { quoteId: string; payload: AssignQuoteSellerPayload }) =>
+      assignQuoteSeller(quoteId, payload),
+    onSuccess: async (_result, variables) => {
+      await queryClient.invalidateQueries({ queryKey: quotesKeys.all })
+      await queryClient.invalidateQueries({ queryKey: quotesKeys.detail(variables.quoteId) })
+    },
   })
 }
 

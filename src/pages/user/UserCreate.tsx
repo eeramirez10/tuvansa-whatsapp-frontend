@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 import {
   Mail,
@@ -13,19 +13,36 @@ import {
 } from 'lucide-react'
 import { notify } from '../../lib/notifications/toast-sonner'
 import { useBranchOptions, useCreateUser } from '../../queries/users/users-query'
-
-const ROLE_OPTIONS = [
-  { value: 'ADMIN', label: 'Administrador' },
-  { value: 'USER', label: 'Usuario' },
-  { value: 'BRANCH_MANAGER', label: 'Gerente de sucursal' },
-  { value: 'SUPPORT', label: 'Soporte' },
-  { value: 'VIEWER', label: 'Consulta' },
-]
+import { useAuth } from '../../hooks/useAuth'
+import {
+  canCreateUsers,
+  getRoleOptionsForUserCreation,
+  normalizeUserRole,
+  roleAllowsMultipleBranches,
+} from '../../services/users/constants'
 
 export const UserCreate = () => {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const { data: branches = [], isLoading: branchesLoading } = useBranchOptions()
   const createUserMutation = useCreateUser()
+
+  const creatorRole = normalizeUserRole(user?.role)
+  const isCreatorAuthorized = canCreateUsers(user?.role)
+  const creatorBranchIds = useMemo(() => {
+    return [
+      ...(user?.branchOffices ?? []).map((branch) => branch.id),
+      ...(user?.branchOffice ? [user.branchOffice.id] : []),
+    ].filter((value, index, values) => Boolean(value) && values.indexOf(value) === index)
+  }, [user?.branchOffice, user?.branchOffices])
+
+  const availableBranches = useMemo(() => {
+    if (creatorRole !== 'SALES_COORDINATOR') return branches
+    return branches.filter((branch) => creatorBranchIds.includes(branch.id))
+  }, [branches, creatorBranchIds, creatorRole])
+
+  const roleOptions = useMemo(() => getRoleOptionsForUserCreation(user?.role), [user?.role])
+  const defaultRole = roleOptions.find((option) => option.value === 'USER')?.value ?? roleOptions[0]?.value ?? 'USER'
 
   const [form, setForm] = useState({
     name: '',
@@ -33,7 +50,7 @@ export const UserCreate = () => {
     username: '',
     email: '',
     phone: '',
-    role: 'USER',
+    role: defaultRole,
     branchIds: [] as string[],
     password: '',
     confirmPassword: '',
@@ -41,12 +58,12 @@ export const UserCreate = () => {
     allowWhatsappAssistant: false,
   })
   const [selectedBranchToAdd, setSelectedBranchToAdd] = useState('')
-  const allowsMultipleBranches = form.role === 'BRANCH_MANAGER'
-  const branchOptions = branches.map((branch) => ({
+  const allowsMultipleBranches = roleAllowsMultipleBranches(form.role)
+  const branchOptions = availableBranches.map((branch) => ({
     value: branch.id,
     label: `${branch.name}${branch.address ? ` - ${branch.address}` : ''}`,
   }))
-  const branchNameById = new Map(branches.map((branch) => [branch.id, branch.name]))
+  const branchNameById = new Map(availableBranches.map((branch) => [branch.id, branch.name]))
 
   const handleChange = (field: keyof typeof form, value: string | boolean | string[]) => {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -54,7 +71,7 @@ export const UserCreate = () => {
 
   const handleRoleChange = (role: string) => {
     setForm((prev) => {
-      const normalizedBranchIds = role === 'BRANCH_MANAGER'
+      const normalizedBranchIds = roleAllowsMultipleBranches(role)
         ? prev.branchIds
         : prev.branchIds.length > 0 ? [prev.branchIds[0]] : []
 
@@ -64,7 +81,7 @@ export const UserCreate = () => {
         branchIds: normalizedBranchIds
       }
     })
-    if (role !== 'BRANCH_MANAGER') {
+    if (!roleAllowsMultipleBranches(role)) {
       setSelectedBranchToAdd('')
     }
   }
@@ -72,8 +89,18 @@ export const UserCreate = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
+    if (!isCreatorAuthorized) {
+      notify.error('No tienes permiso para crear usuarios')
+      return
+    }
+
     if (form.branchIds.length === 0) {
       notify.error('Selecciona al menos una sucursal')
+      return
+    }
+
+    if (creatorRole === 'SALES_COORDINATOR' && form.branchIds.some((branchId) => !creatorBranchIds.includes(branchId))) {
+      notify.error('Solo puedes crear usuarios en tus sucursales asignadas')
       return
     }
 
@@ -111,6 +138,14 @@ export const UserCreate = () => {
     )
   }
 
+  if (!isCreatorAuthorized) {
+    return (
+      <div className='rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700'>
+        No tienes permiso para crear usuarios.
+      </div>
+    )
+  }
+
   return (
     <div className='space-y-6'>
       <div className='flex items-center justify-between flex-wrap gap-4'>
@@ -137,6 +172,12 @@ export const UserCreate = () => {
           </div>
         </div>
 
+        {creatorRole === 'SALES_COORDINATOR' ? (
+          <div className='rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700'>
+            Solo puedes crear usuarios dentro de tus sucursales asignadas.
+          </div>
+        ) : null}
+
         <form className='space-y-6' onSubmit={handleSubmit}>
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             <Input label='Nombre' value={form.name} onChange={value => handleChange('name', value)} icon={<UserRound className='h-4 w-4 text-amber-500' />} />
@@ -150,7 +191,7 @@ export const UserCreate = () => {
               value={form.role}
               onChange={handleRoleChange}
               icon={<ShieldCheck className='h-4 w-4 text-amber-500' />}
-              options={ROLE_OPTIONS}
+              options={roleOptions}
             />
           </div>
 
@@ -203,13 +244,15 @@ export const UserCreate = () => {
                   ))}
                 </div>
               )}
-              <button
-                type='button'
-                onClick={() => navigate('/branchs/new')}
-                className='text-xs font-semibold text-amber-600 hover:text-amber-700'
-              >
-                + Crear sucursal nueva
-              </button>
+              {creatorRole !== 'SALES_COORDINATOR' ? (
+                <button
+                  type='button'
+                  onClick={() => navigate('/branchs/new')}
+                  className='text-xs font-semibold text-amber-600 hover:text-amber-700'
+                >
+                  + Crear sucursal nueva
+                </button>
+              ) : null}
             </div>
 
             <div className='space-y-3'>
@@ -246,7 +289,7 @@ export const UserCreate = () => {
                   username: '',
                   email: '',
                   phone: '',
-                  role: 'USER',
+                  role: defaultRole,
                   branchIds: [],
                   password: '',
                   confirmPassword: '',
@@ -278,24 +321,24 @@ const Input = ({
   label,
   value,
   onChange,
-  type = 'text',
   icon,
+  type = 'text',
 }: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-  icon?: ReactNode;
+  label: string
+  value: string
+  onChange: (value: string) => void
+  icon?: ReactNode
+  type?: string
 }) => (
   <label className='block text-sm'>
-    <span className='text-gray-700 font-semibold'>{label}</span>
-    <div className='mt-1 flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-100 transition'>
-      {icon}
+    <span className='font-semibold text-gray-700'>{label}</span>
+    <div className='mt-1 flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-100'>
+      {icon ? <span>{icon}</span> : null}
       <input
         type={type}
         value={value}
-        onChange={e => onChange(e.target.value)}
-        className='w-full outline-none text-gray-800 placeholder-gray-400'
+        onChange={(event) => onChange(event.target.value)}
+        className='w-full border-none bg-transparent text-gray-800 outline-none'
         placeholder={label}
       />
     </div>
@@ -306,29 +349,32 @@ const SelectInput = ({
   label,
   value,
   onChange,
-  icon,
   options,
+  icon,
   loading = false,
 }: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  icon?: ReactNode;
-  options: Array<{ value: string; label: string }>;
-  loading?: boolean;
+  label: string
+  value: string
+  onChange: (value: string) => void
+  options: Array<{ value: string; label: string }>
+  icon?: ReactNode
+  loading?: boolean
 }) => (
   <label className='block text-sm'>
-    <span className='text-gray-700 font-semibold'>{label}</span>
-    <div className='mt-1 flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-100 transition'>
-      {icon}
+    <span className='font-semibold text-gray-700'>{label}</span>
+    <div className='mt-1 flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-100'>
+      {icon ? <span>{icon}</span> : null}
       <select
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className='w-full bg-transparent outline-none text-gray-800'
+        onChange={(event) => onChange(event.target.value)}
+        className='w-full border-none bg-transparent text-gray-800 outline-none'
+        disabled={loading}
       >
-        <option value=''>{loading ? 'Cargando opciones...' : 'Selecciona una opción'}</option>
+        <option value=''>{loading ? 'Cargando...' : 'Selecciona una opción'}</option>
         {options.map((option) => (
-          <option key={option.value} value={option.value}>{option.label}</option>
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
         ))}
       </select>
     </div>
@@ -342,26 +388,23 @@ const ToggleRow = ({
   onChange,
   icon,
 }: {
-  title: string;
-  description: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  icon: ReactNode;
+  title: string
+  description: string
+  checked: boolean
+  onChange: (checked: boolean) => void
+  icon?: ReactNode
 }) => (
-  <label className='flex items-start justify-between rounded-lg border border-gray-200 px-3 py-2 bg-gray-50 gap-3'>
-    <div className='flex items-start gap-2'>
-      <span className='mt-0.5'>{icon}</span>
+  <div className='flex items-start justify-between gap-4 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3'>
+    <div className='flex gap-3'>
+      <div className='mt-0.5 text-amber-500'>{icon}</div>
       <div>
-        <p className='text-sm font-semibold text-gray-800'>{title}</p>
-        <p className='text-xs text-gray-500'>{description}</p>
+        <p className='font-semibold text-gray-800'>{title}</p>
+        <p className='text-sm text-gray-500'>{description}</p>
       </div>
     </div>
-
-    <input
-      type='checkbox'
-      checked={checked}
-      onChange={(e) => onChange(e.target.checked)}
-      className='mt-1'
-    />
-  </label>
+    <label className='relative inline-flex cursor-pointer items-center'>
+      <input type='checkbox' className='peer sr-only' checked={checked} onChange={(event) => onChange(event.target.checked)} />
+      <div className='peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-amber-500 peer-checked:after:translate-x-full' />
+    </label>
+  </div>
 )

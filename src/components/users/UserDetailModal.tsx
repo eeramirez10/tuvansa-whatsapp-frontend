@@ -2,16 +2,9 @@ import type { Dispatch, FormEvent, SetStateAction } from 'react'
 import { Building2, CalendarClock, Mail, MapPin, Phone, Save, ShieldCheck } from 'lucide-react'
 import type { UpdateUserPayload } from '../../services/users/types'
 import type { User } from '../../interfaces/user.interface'
+import { ROLE_OPTIONS } from '../../services/users/constants'
 import { UserModalShell } from './UserModalShell'
 import { Avatar, InfoRow, InputField, ROLE_LABELS, SelectField, StatusPill, ToggleField, normalizeActive } from './UserUi'
-
-const ROLE_OPTIONS = [
-  { value: 'ADMIN', label: 'Administrador' },
-  { value: 'USER', label: 'Usuario' },
-  { value: 'BRANCH_MANAGER', label: 'Gerente de sucursal' },
-  { value: 'SUPPORT', label: 'Soporte' },
-  { value: 'VIEWER', label: 'Consulta' },
-]
 
 interface UserDetailModalProps {
   open: boolean
@@ -95,7 +88,7 @@ export const UserDetailModal = ({
                 <InputField label='Usuario' value={editForm.username} onChange={(value) => handleEditChange('username', value)} />
                 <InputField label='Correo' value={editForm.email} onChange={(value) => handleEditChange('email', value)} type='email' />
                 <InputField label='Teléfono' value={editForm.phone} onChange={(value) => handleEditChange('phone', value)} />
-                <SelectField label='Rol' value={editForm.role} onChange={handleEditRoleChange} options={ROLE_OPTIONS} />
+                <SelectField label='Rol' value={editForm.role} onChange={handleEditRoleChange} options={[...ROLE_OPTIONS]} />
 
                 {allowsMultipleBranches ? (
                   <div className='space-y-2 md:col-span-2'>

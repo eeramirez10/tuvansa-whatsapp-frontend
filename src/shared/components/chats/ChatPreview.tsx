@@ -1,88 +1,103 @@
-import type { FC } from "react"
-import type { Chat } from "../../../services/chats/types"
-import { useAutoScrollToBottom } from "../../../hooks/useAutoScrollToBottom"
+import type { Chat } from '../../../services/chats/types'
 
-
-interface ChatProps {
+interface ChatPreviewProps {
   chat?: Chat
 }
 
-export const ChatPreview: FC<ChatProps> = ({ chat }) => {
+const formatMessageDate = (value: Date | string | undefined) => {
+  if (!value) return ''
 
-  const { containerRef } = useAutoScrollToBottom([chat?.id])
+  const parsed = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(parsed.getTime())) return ''
+
+  return parsed.toLocaleString('es-MX', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+const normalizeRole = (role?: string) => `${role ?? ''}`.trim().toUpperCase()
+
+const isOutgoingRole = (role?: string) => {
+  const normalizedRole = normalizeRole(role)
+  return normalizedRole === 'ASSISTANT' || normalizedRole === 'SYSTEM' || normalizedRole === 'AGENT'
+}
+
+const getRoleLabel = (role?: string) => {
+  const normalizedRole = normalizeRole(role)
+
+  if (normalizedRole === 'USER') return 'Cliente'
+  if (normalizedRole === 'ASSISTANT') return 'Asistente'
+  if (normalizedRole === 'SYSTEM') return 'Sistema'
+  if (normalizedRole === 'AGENT') return 'Agente'
+
+  return role || 'Mensaje'
+}
+
+export const ChatPreview = ({ chat }: ChatPreviewProps) => {
+  if (!chat) {
+    return (
+      <section className='rounded-xl border border-gray-100 bg-white p-5 shadow-sm'>
+        <div className='flex items-center justify-between gap-3'>
+          <div>
+            <h2 className='text-sm font-semibold uppercase tracking-wide text-gray-500'>Conversación</h2>
+            <p className='mt-1 text-sm text-gray-500'>Todavía no hay mensajes para este hilo.</p>
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   return (
-
-    <div className="bg-white rounded-lg shadow overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200" >
-        <h2 className="text-lg font-semibold text-gray-800">Conversación relacionada</h2>
+    <section className='rounded-xl border border-gray-100 bg-white p-5 shadow-sm'>
+      <div className='flex flex-col gap-1 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between'>
+        <div>
+          <h2 className='text-sm font-semibold uppercase tracking-wide text-gray-500'>Conversación</h2>
+          <p className='mt-1 text-sm font-medium text-gray-800'>{chat.customer?.name || 'Cliente sin nombre'}</p>
+          <p className='text-xs text-gray-500'>{chat.phone || 'Sin teléfono'}</p>
+        </div>
+        <p className='text-xs text-gray-500'>Última interacción: {chat.lastInteraction || 'Sin registro'}</p>
       </div>
-      <div className="p-4">
-        <div className="flex items-center mb-4">
-          <img className="w-8 h-8 rounded-full" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png" alt="Client profile" />
-          <div className="ml-3">
-            <h3 className="font-medium">{chat?.customer?.fullName}</h3>
-            <p className="text-xs text-gray-500">{chat?.lastInteraction}</p>
-          </div>
-        </div>
-        <div ref={containerRef} className="space-y-3 max-h-64 overflow-y-auto">
 
-          {
+      <div className='mt-4 max-h-[540px] space-y-3 overflow-y-auto pr-1'>
+        {chat.messages.length > 0 ? (
+          chat.messages.map((message) => {
+            const outgoing = isOutgoingRole(message.role)
 
-            chat?.messages?.map((message) => {
-
-              if (message.role === 'assistant') {
-
-                return (
-
-                  <div key={message.id} className="flex justify-end">
-                    <div className="bg-green-100 rounded-lg p-3">
-                      <p className="text-sm">{message.content}</p>
-                    </div>
-                    <div className="flex-shrink-0 ml-3">
-                      <img className="w-8 h-8 rounded-full object-cover" src="/img/logo-tuvansa.png" alt="AI Agent profile" />
-                    </div>
+            return (
+              <div
+                key={message.id}
+                className={`flex ${outgoing ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
+                    outgoing
+                      ? 'bg-amber-500 text-white'
+                      : 'border border-gray-200 bg-gray-50 text-gray-800'
+                  }`}
+                >
+                  <div className='mb-2 flex items-center justify-between gap-3'>
+                    <span className={`text-[11px] font-semibold uppercase tracking-wide ${outgoing ? 'text-amber-100' : 'text-gray-500'}`}>
+                      {getRoleLabel(message.role)}
+                    </span>
+                    <span className={`text-[11px] ${outgoing ? 'text-amber-100' : 'text-gray-400'}`}>
+                      {formatMessageDate(message.createdAt)}
+                    </span>
                   </div>
-
-                )
-              }
-
-              if (message.role === 'user') {
-
-                return (
-                  <div key={message.id} className="flex">
-                    <div className="flex-shrink-0 mr-3">
-                      <img className="w-8 h-8 rounded-full" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png" alt="Client profile" />
-
-                    </div>
-                    <div className="bg-gray-100 rounded-lg p-3">
-                      <p className="text-sm">{message.content}</p>
-                    </div>
-                  </div>
-
-                )
-              }
-
-            })
-
-          }
-
-
-
-
-
-
-        </div>
-        <div className="mt-4 border-t border-gray-200 pt-4">
-          <div className="flex">
-            <input type="text" placeholder="Escribe un mensaje..." className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 focus:outline-none">
-              <i data-feather="send"></i>
-            </button>
+                  <p className='whitespace-pre-wrap break-words'>{message.content || 'Sin contenido'}</p>
+                </div>
+              </div>
+            )
+          })
+        ) : (
+          <div className='rounded-lg border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-gray-500'>
+            Este hilo todavía no tiene mensajes.
           </div>
-        </div>
+        )}
       </div>
-    </div>
-
+    </section>
   )
 }

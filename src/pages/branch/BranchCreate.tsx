@@ -4,6 +4,7 @@ import { Building2, MapPin, PlusCircle, Save, UserCog } from 'lucide-react'
 import { notify } from '../../lib/notifications/toast-sonner'
 import { useAuth } from '../../hooks/useAuth'
 import { useAssignBranchManager, useBranchOptions, useCreateBranch, useUpdateBranch, useUsers } from '../../queries/users/users-query'
+import { ROLE_LABELS } from '../../services/users/constants'
 
 export const BranchCreate = () => {
   const navigate = useNavigate()
@@ -29,7 +30,7 @@ export const BranchCreate = () => {
     return users.filter((candidate) => {
       const role = `${candidate.role ?? ''}`.toUpperCase()
       const isActive = isUserActive(candidate.isActive)
-      return role === 'BRANCH_MANAGER' && isActive
+      return ['BRANCH_MANAGER', 'SALES_COORDINATOR'].includes(role) && isActive
     })
   }, [users])
 
@@ -124,7 +125,7 @@ export const BranchCreate = () => {
     const managerId = `${selectedManagerByBranch[branchId] ?? ''}`.trim()
 
     if (!managerId) {
-      notify.error('Selecciona un gerente')
+      notify.error('Selecciona un encargado')
       return
     }
 
@@ -133,12 +134,12 @@ export const BranchCreate = () => {
       await notify.promise(
         assignBranchManagerMutation.mutateAsync({ branchId, managerId }),
         {
-          loading: 'Asignando gerente...',
+          loading: 'Asignando encargado...',
           success: () => {
             setSavedManagerByBranch((prev) => ({ ...prev, [branchId]: managerId }))
-            return 'Gerente asignado correctamente'
+            return 'Encargado asignado correctamente'
           },
-          error: (error: Error) => error.message || 'No se pudo asignar el gerente'
+          error: (error: Error) => error.message || 'No se pudo asignar el encargado'
         }
       )
     } finally {
@@ -180,9 +181,9 @@ export const BranchCreate = () => {
   }
 
   const getUserName = (userId?: string | null) => {
-    if (!userId) return 'Sin gerente asignado'
+    if (!userId) return 'Sin encargado asignado'
     const manager = usersById.get(userId)
-    if (!manager) return 'Gerente no encontrado'
+    if (!manager) return 'Encargado no encontrado'
     return `${manager.name} ${manager.lastname}`.trim()
   }
 
@@ -199,7 +200,7 @@ export const BranchCreate = () => {
       <div className='flex items-center justify-between flex-wrap gap-4'>
         <div>
           <h1 className='text-2xl font-bold text-gray-900'>Sucursales</h1>
-          <p className='text-gray-500 text-sm'>Registra sucursales y asigna un gerente por sucursal.</p>
+          <p className='text-gray-500 text-sm'>Registra sucursales y asigna un encargado por sucursal.</p>
         </div>
 
         <button
@@ -264,8 +265,8 @@ export const BranchCreate = () => {
             <UserCog className='h-5 w-5' />
           </div>
           <div>
-            <p className='text-lg font-semibold text-gray-800'>Editar sucursales y asignar gerente</p>
-            <p className='text-sm text-gray-500'>Actualiza datos de sucursal y asigna gerente por fila.</p>
+            <p className='text-lg font-semibold text-gray-800'>Editar sucursales y asignar encargado</p>
+            <p className='text-sm text-gray-500'>Actualiza datos de sucursal y asigna encargado por fila.</p>
           </div>
         </div>
 
@@ -274,8 +275,8 @@ export const BranchCreate = () => {
             <thead className='bg-gray-50 text-xs uppercase text-gray-500'>
               <tr>
                 <th className='px-4 py-3'>Sucursal</th>
-                <th className='px-4 py-3'>Gerente actual</th>
-                <th className='px-4 py-3'>Asignar gerente</th>
+                <th className='px-4 py-3'>Encargado actual</th>
+                <th className='px-4 py-3'>Asignar encargado</th>
                 <th className='px-4 py-3 text-right'>Acción</th>
               </tr>
             </thead>
@@ -349,10 +350,10 @@ export const BranchCreate = () => {
                         disabled={usersLoading || isAssigningRow || isUpdatingRow}
                         className='w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition'
                       >
-                        <option value=''>{usersLoading ? 'Cargando gerentes...' : 'Selecciona un gerente'}</option>
+                        <option value=''>{usersLoading ? 'Cargando encargados...' : 'Selecciona un encargado'}</option>
                         {managerCandidates.map((manager) => (
                           <option key={manager.id} value={manager.id}>
-                            {manager.name} {manager.lastname} ({manager.username})
+                            {manager.name} {manager.lastname} ({ROLE_LABELS[`${manager.role ?? ''}`.toUpperCase()] ?? manager.username})
                           </option>
                         ))}
                       </select>
@@ -375,7 +376,7 @@ export const BranchCreate = () => {
                           className='inline-flex items-center justify-center gap-2 rounded-md bg-amber-500 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-600 disabled:bg-amber-300'
                         >
                           <Save className='h-4 w-4' />
-                          {isAssigningRow ? 'Guardando...' : 'Guardar gerente'}
+                          {isAssigningRow ? 'Guardando...' : 'Guardar encargado'}
                         </button>
                       </div>
                     </td>

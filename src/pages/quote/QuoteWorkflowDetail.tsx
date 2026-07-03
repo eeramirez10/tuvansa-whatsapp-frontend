@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router'
-import { Building2, FileSpreadsheet, Phone, User2 } from 'lucide-react'
+import { Building2, FileSpreadsheet, Phone, User2, UserCheck2 } from 'lucide-react'
 import { ChatPreview } from '../../shared/components/chats/ChatPreview'
 import { useMessages } from '../../queries/messages/messages-query'
 import { useUsers } from '../../queries/users/users-query'
 import { useAuth } from '../../hooks/useAuth'
 import { notify } from '../../lib/notifications/toast-sonner'
-import { quotesKeys, useQuote as useQuoteDetailQuery } from '../../queries/quotes/quotes-queries'
+import { quotesKeys, useAssignQuoteSeller, useQuote as useQuoteDetailQuery } from '../../queries/quotes/quotes-queries'
 import { useFiles } from '../../hooks/useFiles'
 import { PdfViewerModal } from '../../shared/components/modals/PdfViewerModal'
 import {
@@ -21,6 +21,9 @@ import { isExcel, normalizeFileKey } from '../../utils/valids'
 import { QuoteExtractionJobsService } from '../../services/quotes/quote-extraction-jobs.service'
 import type { ExtractionJobResultResponse, ExtractionJobStatusResponse } from '../../services/quotes/quote-extraction-job.types'
 import { dateFormat } from '../../utils/dateFormat'
+import { AssignSellerModal } from '../../components/quotes/AssignSellerModal'
+import { canAssignQuotesToVendors, normalizeUserRole } from '../../services/users/constants'
+import type { User } from '../../interfaces/user.interface'
 
 const REJECTION_OPTIONS = [
   'Cliente rechazó la oferta',
@@ -103,6 +106,19 @@ const downloadQuoteAsCsv = (options: {
   URL.revokeObjectURL(url)
 }
 
+const isUserActive = (value: unknown) => {
+  if (typeof value === 'boolean') return value
+  return ['true', '1', 'active', 'activo'].includes(`${value ?? ''}`.toLowerCase())
+}
+
+const getUserBranchIds = (user: User) => {
+  return (user.branchOffices ?? (user.branchOffice ? [user.branchOffice] : [])).map((branch) => branch.id)
+}
+
+const getUserFullName = (user?: User | null) => {
+  if (!user) return 'Sin asignar'
+  return `${user.name} ${user.lastname}`.trim()
+}
 type AuditLogItem = {
   id: string
   action: string
@@ -116,8 +132,10 @@ export const QuoteWorkflowDetail = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { user } = useAuth()
-  const isAdmin = `${user?.role ?? ''}`.toUpperCase() === 'ADMIN'
+  const isAdmin = normalizeUserRole(user?.role) === 'ADMIN'
+  const canAssignSeller = canAssignQuotesToVendors(user?.role)
   const { data: users } = useUsers()
+  const assignQuoteSellerMutation = useAssignQuoteSeller()
 
   const { data: quote, isLoading } = useQuoteDetailQuery(id)
   const {
@@ -145,6 +163,18 @@ export const QuoteWorkflowDetail = () => {
   const hasAttachedFile = Boolean(normalizedFileKey)
   const isExcelFile = isExcel(normalizedFileKey)
   const hasExtractedItems = (quote?.items?.length ?? 0) > 0
+  const sellerCandidates = useMemo(() => {
+    if (!quote?.branchId) return []
+
+    return (users ?? []).filter((candidate) => {
+      const role = normalizeUserRole(candidate.role)
+      const isVendor = role === 'VENDOR'
+      const isActive = isUserActive(candidate.isActive)
+      const hasBranchAccess = getUserBranchIds(candidate).includes(quote.branchId ?? '')
+      return isVendor && isActive && hasBranchAccess
+    })
+  }, [quote?.branchId, users])
+  const assignedSellerName = getUserFullName(quote?.assignedSeller)
 
   const [erpQuoteNumber, setErpQuoteNumber] = useState('')
   const [rejectReason, setRejectReason] = useState(REJECTION_OPTIONS[0])
@@ -152,6 +182,8 @@ export const QuoteWorkflowDetail = () => {
   const [fileJobStatusText, setFileJobStatusText] = useState<string | null>(null)
   const [fileErrorMessage, setFileErrorMessage] = useState<string | null>(null)
   const [isFileProcessing, setIsFileProcessing] = useState(false)
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
+  const [selectedSellerId, setSelectedSellerId] = useState('')
   const resumedJobIdRef = useRef<string | null>(null)
 
   useEffect(() => {
@@ -249,6 +281,15 @@ export const QuoteWorkflowDetail = () => {
       }
     ]
 
+    if (quote.assignedAt) {
+      logs.push({
+        id: 'assigned',
+        action: 'Cotización asignada',
+        at: formatAuditDate(quote.assignedAt),
+        actor: getUserFullName(quote.assignedBy),
+        detail: `Vendedor: ${getUserFullName(quote.assignedSeller)}`
+      })
+    }
     if (quote.seenAt) {
       logs.push({
         id: 'viewed',
@@ -451,6 +492,63 @@ export const QuoteWorkflowDetail = () => {
       'Guardando rechazo...',
       'Cotización marcada como rechazada'
     )
+  }
+
+  const openAssignModal = () => {
+    setSelectedSellerId(quote?.assignedSeller?.id ?? '')
+    setIsAssignModalOpen(true)
+  }
+
+  const closeAssignModal = () => {
+    setIsAssignModalOpen(false)
+    setSelectedSellerId('')
+  }
+
+  const onAssignSeller = async () => {
+    if (!id || !quote) {
+      notify.error('No se encontró la cotización')
+      return
+    }
+
+    if (!selectedSellerId) {
+      notify.error('Selecciona un vendedor')
+      return
+    }
+
+    await notify.promise(
+      assignQuoteSellerMutation.mutateAsync({
+        quoteId: id,
+        payload: { sellerId: selectedSellerId }
+      }),
+      {
+        loading: 'Asignando vendedor...',
+        success: (response) => response.message || 'Cotización asignada correctamente',
+        error: (error: Error) => error.message || 'No se pudo asignar la cotización'
+      }
+    )
+
+    closeAssignModal()
+  }
+
+  const onClearSellerAssignment = async () => {
+    if (!id || !quote) {
+      notify.error('No se encontró la cotización')
+      return
+    }
+
+    await notify.promise(
+      assignQuoteSellerMutation.mutateAsync({
+        quoteId: id,
+        payload: { sellerId: null }
+      }),
+      {
+        loading: 'Quitando asignación...',
+        success: (response) => response.message || 'Asignación eliminada correctamente',
+        error: (error: Error) => error.message || 'No se pudo quitar la asignación'
+      }
+    )
+
+    closeAssignModal()
   }
 
   const onDeleteQuote = async () => {
@@ -762,6 +860,43 @@ export const QuoteWorkflowDetail = () => {
           )}
 
           <section className='rounded-xl border border-gray-100 bg-white p-5 shadow-sm'>
+            <h2 className='text-sm font-semibold uppercase tracking-wide text-gray-500'>Asignación</h2>
+            <div className='mt-3 space-y-3'>
+              <div className='rounded-lg border border-gray-100 bg-gray-50 p-4'>
+                <p className='inline-flex items-center gap-2 text-sm font-semibold text-gray-800'>
+                  <UserCheck2 className={`h-4 w-4 ${quote.assignedSeller ? 'text-emerald-600' : 'text-gray-400'}`} />
+                  {assignedSellerName}
+                </p>
+                <p className='mt-1 text-xs text-gray-500'>
+                  {quote.assignedAt ? `Asignada ${dateFormat(quote.assignedAt)}` : 'Pendiente de asignación'}
+                </p>
+                <p className='mt-2 text-xs text-gray-500'>
+                  {quote.assignedBy ? `Asignada por ${getUserFullName(quote.assignedBy)}` : 'Sin usuario asignador registrado'}
+                </p>
+              </div>
+
+              {canAssignSeller ? (
+                <>
+                  <button
+                    type='button'
+                    onClick={openAssignModal}
+                    disabled={!quote.branchId || assignQuoteSellerMutation.isPending || workflowMutation.isPending}
+                    className='w-full rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-600 disabled:bg-amber-300'
+                  >
+                    {quote.assignedSeller ? 'Reasignar vendedor' : 'Asignar vendedor'}
+                  </button>
+                  <p className='text-xs text-gray-500'>
+                    Solo se muestran vendedores activos con acceso a esta sucursal.
+                  </p>
+                </>
+              ) : (
+                <p className='text-sm text-gray-500'>
+                  Solo administrador o coordinador de ventas puede asignar vendedores.
+                </p>
+              )}
+            </div>
+          </section>
+          <section className='rounded-xl border border-gray-100 bg-white p-5 shadow-sm'>
             <h2 className='text-sm font-semibold uppercase tracking-wide text-gray-500'>Flujo ERP</h2>
             {canSaveErpQuote ? (
               <div className='mt-3 space-y-3'>
@@ -850,6 +985,20 @@ export const QuoteWorkflowDetail = () => {
         </div>
       </div>
 
+      <AssignSellerModal
+        open={isAssignModalOpen}
+        onClose={closeAssignModal}
+        quoteNumber={quote.quoteNumber}
+        branchName={quote.branch}
+        currentSellerName={assignedSellerName}
+        sellers={sellerCandidates}
+        selectedSellerId={selectedSellerId}
+        onSelectSeller={setSelectedSellerId}
+        onSubmit={onAssignSeller}
+        onClearAssignment={onClearSellerAssignment}
+        canClearAssignment={Boolean(quote.assignedSeller?.id)}
+        isSubmitting={assignQuoteSellerMutation.isPending}
+      />
       {isOpen && pdfUrl && (
         <PdfViewerModal />
       )}
