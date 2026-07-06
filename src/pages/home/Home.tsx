@@ -1,4 +1,5 @@
 
+import { Navigate } from 'react-router'
 import { StatCard } from '../../shared/components/cards/StatCard';
 import { RecentsQuotes } from '../../shared/components/cards/RecentsQuotes';
 import { RecentConversations, } from '../../shared/components/cards/RecentConversations';
@@ -16,8 +17,10 @@ import { useUsers } from '../../queries/users/users-query';
 
 export const Home = () => {
   const { user } = useAuth()
+  const normalizedRole = `${user?.role ?? ''}`.toUpperCase()
+  const isVendor = normalizedRole === 'VENDOR'
   const { data: users = [] } = useUsers()
-  const isAdmin = `${user?.role ?? ''}`.toUpperCase() === 'ADMIN'
+  const isAdmin = normalizedRole === 'ADMIN'
   const userBranchIds = user?.branchOffices?.map((branch) => branch.id) ?? []
   const canLoadBranchData = isAdmin || userBranchIds.length > 0
 
@@ -114,6 +117,10 @@ export const Home = () => {
     return { ...chat, messages: [...(chat.messages ?? [])].reverse() }
   }, [chat])
 
+
+  if (isVendor) {
+    return <Navigate to='/quotes' replace />
+  }
 
   return (
     <div>

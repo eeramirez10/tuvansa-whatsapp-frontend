@@ -16,15 +16,20 @@ export const SideBar = () => {
 
   const navClass = ({ isActive }: { isActive: boolean }) => `${navBase} ${isActive ? active : inactive}`
 
-  const nav = [
-    { name: 'Dashboard', to: '/home', icon: <LucideLayoutDashboard /> },
-    { name: 'Cotizaciones', to: '/quotes', icon: <DollarSign /> },
-    { name: 'Perfil', to: '/user', icon: <UserRound /> },
-    { name: 'Reportes', to: '/quote-reports', icon: <ChartBarStackedIcon /> },
-    { name: 'Reporte Ejecutivo', to: '/quote-reports/executive', icon: <FileTextIcon /> }
-  ]
-
   const normalizedRole = `${user?.role ?? ''}`.toUpperCase()
+
+  const nav = normalizedRole === 'VENDOR'
+    ? [
+        { name: 'Cotizaciones', to: '/quotes', icon: <DollarSign /> },
+        { name: 'Perfil', to: '/user', icon: <UserRound /> },
+      ]
+    : [
+        { name: 'Dashboard', to: '/home', icon: <LucideLayoutDashboard /> },
+        { name: 'Cotizaciones', to: '/quotes', icon: <DollarSign /> },
+        { name: 'Perfil', to: '/user', icon: <UserRound /> },
+        { name: 'Reportes', to: '/quote-reports', icon: <ChartBarStackedIcon /> },
+        { name: 'Reporte Ejecutivo', to: '/quote-reports/executive', icon: <FileTextIcon /> },
+      ]
 
   if (normalizedRole === 'ADMIN' || normalizedRole === 'SALES_COORDINATOR') {
     nav.splice(2, 0, { name: 'Usuarios', to: '/users', icon: <Users /> })
