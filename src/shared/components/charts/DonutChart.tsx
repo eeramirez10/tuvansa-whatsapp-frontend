@@ -194,6 +194,15 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
 
     const categories = Array.from(new Set(data.map((item) => item[category])))
     const categoryColors = constructCategoryColors(categories, colors)
+    const chartData = React.useMemo(
+      () =>
+        parseData(data, categoryColors, category).map((item, index) => ({
+          ...item,
+          fillOpacity:
+            activeIndex === undefined || activeIndex === index ? 1 : 0.3,
+        })),
+      [activeIndex, category, categoryColors, data],
+    )
 
     const prevActiveRef = React.useRef<boolean | undefined>(undefined)
     const prevCategoryRef = React.useRef<string | undefined>(undefined)
@@ -254,7 +263,7 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
                 "stroke-white dark:stroke-gray-950 [&_.recharts-pie-sector]:outline-hidden",
                 onValueChange ? "cursor-pointer" : "cursor-default",
               )}
-              data={parseData(data, categoryColors, category)}
+              data={chartData}
               cx="50%"
               cy="50%"
               startAngle={90}
@@ -267,7 +276,6 @@ const DonutChart = React.forwardRef<HTMLDivElement, DonutChartProps>(
               nameKey={category}
               isAnimationActive={false}
               onClick={handleShapeClick}
-              activeIndex={activeIndex}
               inactiveShape={renderInactiveShape}
               style={{ outline: "none" }}
             />

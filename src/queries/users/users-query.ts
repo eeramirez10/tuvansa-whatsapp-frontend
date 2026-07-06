@@ -4,6 +4,7 @@ import {
   createBranch,
   deleteNotificationSetting,
   createUser,
+  deleteUser,
   getBranchOptions,
   getNotificationSettings,
   getWorkflowReminderConfig,
@@ -28,17 +29,17 @@ import type {
 
 export const usersKeys = {
   all: ["users"] as const,
-  list: () => [...usersKeys.all, "list"] as const,
+  list: (options?: { manageableOnly?: boolean }) => [...usersKeys.all, "list", { manageableOnly: Boolean(options?.manageableOnly) }] as const,
   notificationSettings: (userId?: string) =>
     [...usersKeys.all, "notification-settings", { userId: userId ?? "" }] as const,
   branches: () => [...usersKeys.all, "branches"] as const,
   workflowReminderConfig: () => [...usersKeys.all, "workflow-reminder-config"] as const
 };
 
-export const useUsers = () => {
+export const useUsers = (options?: { manageableOnly?: boolean }) => {
   return useQuery({
-    queryKey: usersKeys.list(),
-    queryFn: getUsers
+    queryKey: usersKeys.list(options),
+    queryFn: () => getUsers(options)
   });
 };
 
@@ -81,7 +82,7 @@ export const useCreateUser = () => {
   return useMutation({
     mutationFn: (payload: CreateUserPayload) => createUser(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: usersKeys.list() });
+      queryClient.invalidateQueries({ queryKey: usersKeys.all });
     }
   });
 };
@@ -92,7 +93,18 @@ export const useUpdateUser = () => {
     mutationFn: ({ userId, payload }: { userId: string; payload: UpdateUserPayload }) =>
       updateUser(userId, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: usersKeys.list() });
+      queryClient.invalidateQueries({ queryKey: usersKeys.all });
+      queryClient.invalidateQueries({ queryKey: usersKeys.notificationSettings() });
+    }
+  });
+};
+
+export const useDeleteUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) => deleteUser(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: usersKeys.all });
       queryClient.invalidateQueries({ queryKey: usersKeys.notificationSettings() });
     }
   });

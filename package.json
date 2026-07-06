@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "firebase": "build && firebase deploy"
+    "deploy:hosting": "pnpm build && firebase deploy --only hosting",
+    "firebase": "pnpm build && firebase deploy --only hosting"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",

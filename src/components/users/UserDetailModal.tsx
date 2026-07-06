@@ -1,17 +1,17 @@
 import type { Dispatch, FormEvent, SetStateAction } from 'react'
-import { Building2, CalendarClock, Mail, MapPin, Phone, Save, ShieldCheck } from 'lucide-react'
+import { Building2, CalendarClock, Mail, MapPin, Phone, Save, ShieldCheck, Trash2 } from 'lucide-react'
 import type { UpdateUserPayload } from '../../services/users/types'
 import type { User } from '../../interfaces/user.interface'
-import { ROLE_OPTIONS } from '../../services/users/constants'
 import { UserModalShell } from './UserModalShell'
 import { Avatar, InfoRow, InputField, ROLE_LABELS, SelectField, StatusPill, ToggleField, normalizeActive } from './UserUi'
 
 interface UserDetailModalProps {
   open: boolean
   onClose: () => void
-  isAdmin: boolean
+  canManageUsers: boolean
   selectedUser?: User
   editForm: UpdateUserPayload
+  roleOptions: Array<{ value: string; label: string }>
   branchOptions: Array<{ value: string; label: string }>
   branchNameById: Map<string, string>
   selectedBranchToAdd: string
@@ -20,21 +20,24 @@ interface UserDetailModalProps {
   selectedUserBranchAddresses: string
   allowsMultipleBranches: boolean
   isSavingUser: boolean
+  isDeletingUser: boolean
   dateFormat: (value: string) => string
   setEditForm: Dispatch<SetStateAction<UpdateUserPayload>>
   setSelectedBranchToAdd: (value: string) => void
   handleEditChange: (field: keyof UpdateUserPayload, value: string | boolean | string[]) => void
   handleEditRoleChange: (role: string) => void
   handleSaveUser: (event: FormEvent<HTMLFormElement>) => Promise<void>
+  handleDeleteUser: () => Promise<void>
   resetEditForm: () => void
 }
 
 export const UserDetailModal = ({
   open,
   onClose,
-  isAdmin,
+  canManageUsers,
   selectedUser,
   editForm,
+  roleOptions,
   branchOptions,
   branchNameById,
   selectedBranchToAdd,
@@ -43,12 +46,14 @@ export const UserDetailModal = ({
   selectedUserBranchAddresses,
   allowsMultipleBranches,
   isSavingUser,
+  isDeletingUser,
   dateFormat,
   setEditForm,
   setSelectedBranchToAdd,
   handleEditChange,
   handleEditRoleChange,
   handleSaveUser,
+  handleDeleteUser,
   resetEditForm,
 }: UserDetailModalProps) => {
   return (
@@ -80,7 +85,7 @@ export const UserDetailModal = ({
             </div>
           </div>
 
-          {isAdmin ? (
+          {canManageUsers ? (
             <form className='space-y-4 border-t border-gray-100 pt-5' onSubmit={handleSaveUser}>
               <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
                 <InputField label='Nombre' value={editForm.name} onChange={(value) => handleEditChange('name', value)} />
@@ -88,7 +93,7 @@ export const UserDetailModal = ({
                 <InputField label='Usuario' value={editForm.username} onChange={(value) => handleEditChange('username', value)} />
                 <InputField label='Correo' value={editForm.email} onChange={(value) => handleEditChange('email', value)} type='email' />
                 <InputField label='Teléfono' value={editForm.phone} onChange={(value) => handleEditChange('phone', value)} />
-                <SelectField label='Rol' value={editForm.role} onChange={handleEditRoleChange} options={[...ROLE_OPTIONS]} />
+                <SelectField label='Rol' value={editForm.role} onChange={handleEditRoleChange} options={roleOptions} />
 
                 {allowsMultipleBranches ? (
                   <div className='space-y-2 md:col-span-2'>
@@ -158,22 +163,34 @@ export const UserDetailModal = ({
                 />
               </div>
 
-              <div className='flex justify-end gap-2 border-t border-gray-100 pt-4'>
+              <div className='flex flex-wrap justify-between gap-2 border-t border-gray-100 pt-4'>
                 <button
                   type='button'
-                  onClick={resetEditForm}
-                  className='rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50'
+                  onClick={handleDeleteUser}
+                  disabled={isDeletingUser || isSavingUser}
+                  className='inline-flex items-center gap-1 rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-60'
                 >
-                  Restablecer
+                  <Trash2 className='h-4 w-4' />
+                  {isDeletingUser ? 'Eliminando...' : 'Eliminar usuario'}
                 </button>
-                <button
-                  type='submit'
-                  disabled={isSavingUser || branchesLoading}
-                  className='inline-flex items-center gap-1 rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-amber-600 disabled:bg-amber-300'
-                >
-                  <Save className='h-4 w-4' />
-                  {isSavingUser ? 'Guardando...' : 'Guardar cambios'}
-                </button>
+
+                <div className='flex justify-end gap-2'>
+                  <button
+                    type='button'
+                    onClick={resetEditForm}
+                    className='rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50'
+                  >
+                    Restablecer
+                  </button>
+                  <button
+                    type='submit'
+                    disabled={isSavingUser || branchesLoading}
+                    className='inline-flex items-center gap-1 rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-amber-600 disabled:bg-amber-300'
+                  >
+                    <Save className='h-4 w-4' />
+                    {isSavingUser ? 'Guardando...' : 'Guardar cambios'}
+                  </button>
+                </div>
               </div>
             </form>
           ) : (

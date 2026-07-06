@@ -8,6 +8,7 @@ import {
   type CreateUserPayload,
   type CreateUserResponse,
   type DeleteNotificationSettingResponse,
+  type DeleteUserResponse,
   type NotificationSettingsResponse,
   type NotificationTestPayload,
   type NotificationTestResponse,
@@ -25,8 +26,9 @@ import {
 } from "./types";
 import { userApiToView } from "./users.mapper";
 
-export const getUsers = async () => {
-  const response = await fetcher<UserApiResponse>(`${envs.URL}/users`);
+export const getUsers = async (options?: { manageableOnly?: boolean }) => {
+  const params = options?.manageableOnly ? '?manageableOnly=true' : '';
+  const response = await fetcher<UserApiResponse>(`${envs.URL}/users${params}`);
   return response.users.map(userApiToView);
 };
 
@@ -63,6 +65,10 @@ export const createUser = async (payload: CreateUserPayload) => {
 export const updateUser = async (userId: string, payload: UpdateUserPayload) => {
   const response = await putFetcher<UpdateUserResponse>(`${envs.URL}/users/${userId}`, payload);
   return userApiToView(response.user);
+};
+
+export const deleteUser = async (userId: string) => {
+  return await deleteFetcher<DeleteUserResponse>(`${envs.URL}/users/${userId}`);
 };
 
 export const createBranch = async (payload: CreateBranchPayload) => {

@@ -21,6 +21,7 @@ export const UsersList = () => {
   const {
     dateFormat,
     isAdmin,
+    canManageUsers,
     users,
     filteredUsers,
     usersLoading,
@@ -43,10 +44,12 @@ export const UsersList = () => {
     setWorkflowReminderEnabled,
     editForm,
     setEditForm,
+    editRoleOptions,
     selectedBranchToAdd,
     setSelectedBranchToAdd,
     isSavingNotification,
     isDeletingNotification,
+    isDeletingUser,
     isSavingUser,
     isSendingTest,
     isSendingAllTests,
@@ -56,6 +59,7 @@ export const UsersList = () => {
     handleEditChange,
     handleEditRoleChange,
     handleSaveUser,
+    handleDeleteUser,
     handleSaveNotification,
     handleSendTest,
     handleSendAllTests,
@@ -100,7 +104,7 @@ export const UsersList = () => {
         <div>
           <h1 className='text-2xl font-bold text-gray-900'>Usuarios</h1>
           <p className='text-sm text-gray-500'>
-            Administra cuentas, notificaciones y pruebas sin mezclar toda la operación en una sola vista.
+            Administra vendedores y revisa su configuración sin mezclar toda la operación en una sola vista.
           </p>
         </div>
 
@@ -139,6 +143,7 @@ export const UsersList = () => {
           users={filteredUsers}
           isLoading={usersLoading}
           selectedUserId={selectedUser?.id ?? null}
+          canManageNotifications={isAdmin}
           onViewDetail={openUserDetail}
           onOpenNotifications={openNotifications}
           onOpenTester={openTester}
@@ -154,9 +159,10 @@ export const UsersList = () => {
       <UserDetailModal
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
-        isAdmin={isAdmin}
+        canManageUsers={canManageUsers}
         selectedUser={selectedUser}
         editForm={editForm}
+        roleOptions={editRoleOptions}
         branchOptions={branchOptions}
         branchNameById={branchNameById}
         selectedBranchToAdd={selectedBranchToAdd}
@@ -165,12 +171,14 @@ export const UsersList = () => {
         selectedUserBranchAddresses={selectedUserBranchAddresses}
         allowsMultipleBranches={allowsMultipleBranches}
         isSavingUser={isSavingUser}
+        isDeletingUser={isDeletingUser}
         dateFormat={dateFormat}
         setEditForm={setEditForm}
         setSelectedBranchToAdd={setSelectedBranchToAdd}
         handleEditChange={handleEditChange}
         handleEditRoleChange={handleEditRoleChange}
         handleSaveUser={handleSaveUser}
+        handleDeleteUser={handleDeleteUser}
         resetEditForm={resetEditForm}
       />
 

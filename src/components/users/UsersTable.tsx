@@ -7,6 +7,7 @@ interface UsersTableProps {
   users: User[]
   isLoading: boolean
   selectedUserId?: string | null
+  canManageNotifications?: boolean
   onViewDetail: (id: string) => void
   onOpenNotifications: (id: string) => void
   onOpenTester: (id: string) => void
@@ -16,6 +17,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
   users,
   isLoading,
   selectedUserId,
+  canManageNotifications = false,
   onViewDetail,
   onOpenNotifications,
   onOpenTester,
@@ -72,16 +74,20 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                       icon={<Eye className='h-4 w-4' />}
                       onClick={() => onViewDetail(user.id)}
                     />
-                    <ActionButton
-                      label='Notificaciones'
-                      icon={<BellRing className='h-4 w-4' />}
-                      onClick={() => onOpenNotifications(user.id)}
-                    />
-                    <ActionButton
-                      label='Probador'
-                      icon={<FlaskConical className='h-4 w-4' />}
-                      onClick={() => onOpenTester(user.id)}
-                    />
+                    {canManageNotifications ? (
+                      <>
+                        <ActionButton
+                          label='Notificaciones'
+                          icon={<BellRing className='h-4 w-4' />}
+                          onClick={() => onOpenNotifications(user.id)}
+                        />
+                        <ActionButton
+                          label='Probador'
+                          icon={<FlaskConical className='h-4 w-4' />}
+                          onClick={() => onOpenTester(user.id)}
+                        />
+                      </>
+                    ) : null}
                   </div>
                 </td>
               </tr>

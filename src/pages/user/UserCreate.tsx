@@ -19,7 +19,10 @@ import {
   getRoleOptionsForUserCreation,
   normalizeUserRole,
   roleAllowsMultipleBranches,
+  ROLE_OPTIONS,
 } from '../../services/users/constants'
+
+type UserRoleValue = (typeof ROLE_OPTIONS)[number]['value']
 
 export const UserCreate = () => {
   const navigate = useNavigate()
@@ -70,18 +73,21 @@ export const UserCreate = () => {
   }
 
   const handleRoleChange = (role: string) => {
+    const normalizedRole = normalizeUserRole(role) as UserRoleValue
+
     setForm((prev) => {
-      const normalizedBranchIds = roleAllowsMultipleBranches(role)
+      const normalizedBranchIds = roleAllowsMultipleBranches(normalizedRole)
         ? prev.branchIds
         : prev.branchIds.length > 0 ? [prev.branchIds[0]] : []
 
       return {
         ...prev,
-        role,
-        branchIds: normalizedBranchIds
+        role: normalizedRole,
+        branchIds: normalizedBranchIds,
       }
     })
-    if (!roleAllowsMultipleBranches(role)) {
+
+    if (!roleAllowsMultipleBranches(normalizedRole)) {
       setSelectedBranchToAdd('')
     }
   }

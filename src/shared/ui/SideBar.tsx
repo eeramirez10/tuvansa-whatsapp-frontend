@@ -24,8 +24,13 @@ export const SideBar = () => {
     { name: 'Reporte Ejecutivo', to: '/quote-reports/executive', icon: <FileTextIcon /> }
   ]
 
-  if (`${user?.role ?? ''}`.toUpperCase() === 'ADMIN') {
+  const normalizedRole = `${user?.role ?? ''}`.toUpperCase()
+
+  if (normalizedRole === 'ADMIN' || normalizedRole === 'SALES_COORDINATOR') {
     nav.splice(2, 0, { name: 'Usuarios', to: '/users', icon: <Users /> })
+  }
+
+  if (normalizedRole === 'ADMIN') {
     nav.splice(3, 0, { name: 'Sucursales', to: '/branchs/new', icon: <Building2 /> })
   }
 

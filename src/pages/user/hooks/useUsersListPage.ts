@@ -4,6 +4,7 @@ import { notify } from '../../../lib/notifications/toast-sonner'
 import {
   useBranchOptions,
   useDeleteNotificationSetting,
+  useDeleteUser,
   useNotificationSettings,
   useSendNotificationTest,
   useSendNotificationTests,
@@ -19,7 +20,12 @@ import type {
   UpdateUserPayload,
   UpsertNotificationSettingPayload,
 } from '../../../services/users/types'
-import { ROLE_LABELS, roleAllowsMultipleBranches } from '../../../services/users/constants'
+import {
+  getRoleOptionsForUserCreation,
+  normalizeUserRole,
+  ROLE_LABELS,
+  roleAllowsMultipleBranches,
+} from '../../../services/users/constants'
 import { dateFormat } from '../../../utils/dateFormat'
 
 const EMPTY_EDIT_FORM: UpdateUserPayload = {
@@ -46,9 +52,18 @@ const EMPTY_NOTIFICATION_FORM: UpsertNotificationSettingPayload = {
 
 export const useUsersListPage = () => {
   const { user: authUser } = useAuth()
-  const isAdmin = `${authUser?.role ?? ''}`.toUpperCase() === 'ADMIN'
+  const normalizedAuthRole = normalizeUserRole(authUser?.role)
+  const isAdmin = normalizedAuthRole === 'ADMIN'
+  const isSalesCoordinator = normalizedAuthRole === 'SALES_COORDINATOR'
+  const canManageUsers = isAdmin || isSalesCoordinator
+  const authUserBranchIds = useMemo(() => {
+    return [
+      ...(authUser?.branchOffices ?? []).map((branch) => branch.id),
+      ...(authUser?.branchOffice ? [authUser.branchOffice.id] : []),
+    ].filter((value, index, values) => Boolean(value) && values.indexOf(value) === index)
+  }, [authUser?.branchOffice, authUser?.branchOffices])
 
-  const { data: users = [], isLoading: usersLoading, error: usersError } = useUsers()
+  const { data: users = [], isLoading: usersLoading, error: usersError } = useUsers({ manageableOnly: true })
   const { data: branches = [], isLoading: branchesLoading } = useBranchOptions()
   const {
     data: settings = [],
@@ -63,6 +78,7 @@ export const useUsersListPage = () => {
 
   const upsertNotificationSettingMutation = useUpsertNotificationSetting()
   const deleteNotificationSettingMutation = useDeleteNotificationSetting()
+  const deleteUserMutation = useDeleteUser()
   const updateUserMutation = useUpdateUser()
   const sendNotificationTestMutation = useSendNotificationTest()
   const sendNotificationTestsMutation = useSendNotificationTests()
@@ -76,18 +92,28 @@ export const useUsersListPage = () => {
   const [editForm, setEditForm] = useState<UpdateUserPayload>(EMPTY_EDIT_FORM)
   const [selectedBranchToAdd, setSelectedBranchToAdd] = useState('')
 
+  const availableBranches = useMemo(() => {
+    if (!isSalesCoordinator) return branches
+    return branches.filter((branch) => authUserBranchIds.includes(branch.id))
+  }, [authUserBranchIds, branches, isSalesCoordinator])
+
   const branchOptions = useMemo(
     () =>
-      branches.map((branch) => ({
+      availableBranches.map((branch) => ({
         value: branch.id,
         label: `${branch.name}${branch.address ? ` - ${branch.address}` : ''}`,
       })),
-    [branches],
+    [availableBranches],
   )
 
   const branchNameById = useMemo(
-    () => new Map(branches.map((branch) => [branch.id, branch.name])),
-    [branches],
+    () => new Map(availableBranches.map((branch) => [branch.id, branch.name])),
+    [availableBranches],
+  )
+
+  const editRoleOptions = useMemo(
+    () => getRoleOptionsForUserCreation(authUser?.role),
+    [authUser?.role],
   )
 
   useEffect(() => {
@@ -138,8 +164,8 @@ export const useUsersListPage = () => {
   }, [users, filter])
 
   const selectedUser = useMemo(() => {
-    return users.find((u) => u.id === selectedId) ?? filteredUsers[0]
-  }, [users, selectedId, filteredUsers])
+    return filteredUsers.find((u) => u.id === selectedId) ?? filteredUsers[0]
+  }, [filteredUsers, selectedId])
 
   const selectedUserBranchIds = useMemo(
     () => (selectedUser?.branchOffices ?? []).map((branch) => branch.id),
@@ -170,13 +196,13 @@ export const useUsersListPage = () => {
       username: selectedUser.username ?? '',
       email: selectedUser.email ?? '',
       phone: selectedUser.phone ?? '',
-      role: selectedUser.role ?? 'USER',
+      role: selectedUser.role ?? editRoleOptions[0]?.value ?? 'USER',
       branchIds: selectedUserBranchIds,
       isActive: normalizeActive(selectedUser.isActive),
       allowWhatsappAssistant: Boolean(selectedUser.allowWhatsappAssistant),
       password: '',
     })
-  }, [selectedUser, selectedUserBranchIds])
+  }, [editRoleOptions, selectedUser, selectedUserBranchIds])
 
   const orderedSettings = useMemo(() => {
     return [...settings].sort((a, b) => {
@@ -190,6 +216,7 @@ export const useUsersListPage = () => {
 
   const isSavingNotification = upsertNotificationSettingMutation.isPending
   const isDeletingNotification = deleteNotificationSettingMutation.isPending
+  const isDeletingUser = deleteUserMutation.isPending
   const isSavingUser = updateUserMutation.isPending
   const isSendingTest = sendNotificationTestMutation.isPending
   const isSendingAllTests = sendNotificationTestsMutation.isPending
@@ -212,8 +239,10 @@ export const useUsersListPage = () => {
   }
 
   const handleEditRoleChange = (role: string) => {
+    const normalizedRole = normalizeUserRole(role)
+
     setEditForm((prev) => {
-      const branchIds = roleAllowsMultipleBranches(role)
+      const branchIds = roleAllowsMultipleBranches(normalizedRole)
         ? (prev.branchIds ?? [])
         : (prev.branchIds ?? []).length > 0
           ? [prev.branchIds[0]]
@@ -221,12 +250,12 @@ export const useUsersListPage = () => {
 
       return {
         ...prev,
-        role,
+        role: normalizedRole,
         branchIds,
       }
     })
 
-    if (!roleAllowsMultipleBranches(role)) {
+    if (!roleAllowsMultipleBranches(normalizedRole)) {
       setSelectedBranchToAdd('')
     }
   }
@@ -240,7 +269,7 @@ export const useUsersListPage = () => {
       username: selectedUser.username ?? '',
       email: selectedUser.email ?? '',
       phone: selectedUser.phone ?? '',
-      role: selectedUser.role ?? 'USER',
+      role: selectedUser.role ?? editRoleOptions[0]?.value ?? 'USER',
       branchIds: selectedUserBranchIds,
       isActive: normalizeActive(selectedUser.isActive),
       allowWhatsappAssistant: Boolean(selectedUser.allowWhatsappAssistant),
@@ -262,6 +291,18 @@ export const useUsersListPage = () => {
       return
     }
 
+    if (isSalesCoordinator) {
+      if (normalizeUserRole(editForm.role) !== 'VENDOR') {
+        notify.error('Solo puedes gestionar usuarios con rol VENDOR')
+        return
+      }
+
+      if (editForm.branchIds.some((branchId) => !authUserBranchIds.includes(branchId))) {
+        notify.error('Solo puedes asignar sucursales dentro de tu alcance')
+        return
+      }
+    }
+
     await notify.promise(
       updateUserMutation.mutateAsync({
         userId: selectedUser.id,
@@ -276,6 +317,26 @@ export const useUsersListPage = () => {
         error: (error: Error) => error.message || 'No se pudo actualizar el usuario',
       },
     )
+  }
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser?.id) {
+      notify.error('Selecciona un usuario')
+      return
+    }
+
+    if (!window.confirm(`¿Eliminar a ${selectedUser.name} ${selectedUser.lastname}?`)) {
+      return
+    }
+
+    await notify.promise(deleteUserMutation.mutateAsync(selectedUser.id), {
+      loading: 'Eliminando usuario...',
+      success: () => {
+        setSelectedId(null)
+        return 'Usuario eliminado correctamente'
+      },
+      error: (error: Error) => error.message || 'No se pudo eliminar el usuario',
+    })
   }
 
   const handleSaveNotification = async (event: FormEvent<HTMLFormElement>) => {
@@ -360,6 +421,8 @@ export const useUsersListPage = () => {
   return {
     dateFormat,
     isAdmin,
+    isSalesCoordinator,
+    canManageUsers,
     users,
     filteredUsers,
     usersLoading,
@@ -384,10 +447,12 @@ export const useUsersListPage = () => {
     setWorkflowReminderEnabled,
     editForm,
     setEditForm,
+    editRoleOptions,
     selectedBranchToAdd,
     setSelectedBranchToAdd,
     isSavingNotification,
     isDeletingNotification,
+    isDeletingUser,
     isSavingUser,
     isSendingTest,
     isSendingAllTests,
@@ -397,6 +462,7 @@ export const useUsersListPage = () => {
     handleEditChange,
     handleEditRoleChange,
     handleSaveUser,
+    handleDeleteUser,
     handleSaveNotification,
     handleSendTest,
     handleSendAllTests,

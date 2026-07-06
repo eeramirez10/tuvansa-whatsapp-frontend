@@ -147,7 +147,7 @@ interface ScrollButtonProps {
 const ScrollButton = ({ icon, onClick, disabled }: ScrollButtonProps) => {
   const Icon = icon
   const [isPressed, setIsPressed] = React.useState(false)
-  const intervalRef = React.useRef<number | null>(null)
+  const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
 
   React.useEffect(() => {
     if (isPressed) {
@@ -276,10 +276,17 @@ const Legend = React.forwardRef<HTMLOListElement, LegendProps>((props, ref) => {
       intervalRef.current = setInterval(() => {
         keyDownHandler(isKeyDowned)
       }, 300)
-    } else {
-      clearInterval(intervalRef.current as NodeJS.Timeout)
+    } else if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
     }
-    return () => clearInterval(intervalRef.current as NodeJS.Timeout)
+
+    return () => {
+      if (intervalRef.current !== null) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+    }
   }, [isKeyDowned, scrollToTest])
 
   const keyDown = (e: KeyboardEvent) => {
@@ -788,6 +795,7 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
                 x: layout === "horizontal" ? undefined : yAxisWidth + 20,
               }}
               content={({ active, payload, label }) => {
+                const normalizedLabel = label === undefined ? "" : String(label)
                 const cleanPayload: TooltipProps["payload"] = payload
                   ? payload.map((item: any) => ({
                       category: item.dataKey,
@@ -804,11 +812,11 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
                 if (
                   tooltipCallback &&
                   (active !== prevActiveRef.current ||
-                    label !== prevLabelRef.current)
+                    normalizedLabel !== prevLabelRef.current)
                 ) {
-                  tooltipCallback({ active, payload: cleanPayload, label })
+                  tooltipCallback({ active, payload: cleanPayload, label: normalizedLabel })
                   prevActiveRef.current = active
-                  prevLabelRef.current = label
+                  prevLabelRef.current = normalizedLabel
                 }
 
                 return showTooltip && active ? (
@@ -816,13 +824,13 @@ const BarChart = React.forwardRef<HTMLDivElement, BarChartProps>(
                     <CustomTooltip
                       active={active}
                       payload={cleanPayload}
-                      label={label}
+                      label={normalizedLabel}
                     />
                   ) : (
                     <ChartTooltip
                       active={active}
                       payload={cleanPayload}
-                      label={label}
+                      label={normalizedLabel}
                       valueFormatter={valueFormatter}
                     />
                   )

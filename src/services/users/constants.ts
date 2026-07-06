@@ -22,7 +22,6 @@ const MULTI_BRANCH_ROLES = new Set(['BRANCH_MANAGER', 'SALES_COORDINATOR'])
 const QUOTE_ASSIGNMENT_ROLES = new Set(['ADMIN', 'SALES_COORDINATOR'])
 const BRANCH_COORDINATOR_ROLES = new Set(['BRANCH_MANAGER', 'SALES_COORDINATOR'])
 const USER_CREATION_ROLES = new Set(['ADMIN', 'SALES_COORDINATOR'])
-const SALES_COORDINATOR_BLOCKED_CREATION_ROLES = new Set(['ADMIN', 'SALES_COORDINATOR'])
 
 export const normalizeUserRole = (role?: string) => `${role ?? ''}`.trim().toUpperCase()
 
@@ -49,5 +48,5 @@ export const getRoleOptionsForUserCreation = (creatorRole?: string) => {
     return [...ROLE_OPTIONS]
   }
 
-  return ROLE_OPTIONS.filter((option) => !SALES_COORDINATOR_BLOCKED_CREATION_ROLES.has(option.value))
+  return ROLE_OPTIONS.filter((option) => option.value === 'VENDOR')
 }

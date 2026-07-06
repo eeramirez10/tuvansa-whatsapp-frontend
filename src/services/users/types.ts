@@ -76,6 +76,10 @@ export interface DeleteNotificationSettingResponse {
   ok: boolean;
 }
 
+export interface DeleteUserResponse {
+  ok: boolean;
+}
+
 export interface NotificationTestPayload {
   userId: string;
   event: string;
