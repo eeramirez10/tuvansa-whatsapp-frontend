@@ -1,4 +1,3 @@
-import { ChevronLeft, ChevronRight, ChevronsLeftIcon, ChevronsRightIcon } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { notify } from '../../lib/notifications/toast-sonner'
 import { AssignSellerModal } from '../../components/quotes/AssignSellerModal'
@@ -8,18 +7,14 @@ import { useUsers } from '../../queries/users/users-query'
 import { canAssignQuotesToVendors, normalizeUserRole } from '../../services/users/constants'
 import { useAssignQuoteSeller, useQuotes } from '../../queries/quotes/quotes-queries'
 import { QUOTE_WORKFLOW_STATUS_OPTIONS, type QuoteWorkflowStatusValue } from '../../shared/constants/quote-workflow'
-import type { User } from '../../interfaces/user.interface'
 import type { Quote } from '../../store/quote/quote.store'
+import { Pagination } from '../../shared/components/tables/Pagination'
 
 const PAGE_SIZE = 10
 
 const isUserActive = (value: unknown) => {
   if (typeof value === 'boolean') return value
   return ['true', '1', 'active', 'activo'].includes(`${value ?? ''}`.toLowerCase())
-}
-
-const getUserBranchIds = (user: User) => {
-  return (user.branchOffices ?? (user.branchOffice ? [user.branchOffice] : [])).map((branch) => branch.id)
 }
 
 const getAssignedSellerName = (quote?: Quote | null) => {
@@ -29,11 +24,14 @@ const getAssignedSellerName = (quote?: Quote | null) => {
 
 export const Quotes = () => {
   const { user } = useAuth()
-  const { data: users = [] } = useUsers()
-  const assignQuoteSellerMutation = useAssignQuoteSeller()
-
   const isAdmin = normalizeUserRole(user?.role) === 'ADMIN'
   const canAssignQuotes = canAssignQuotesToVendors(user?.role)
+  const { data: users = [] } = useUsers({
+    manageableOnly: true,
+    enabled: canAssignQuotes,
+  })
+  const assignQuoteSellerMutation = useAssignQuoteSeller()
+
   const userBranchIds = user?.branchOffices?.map((branch) => branch.id) ?? []
   const canLoadQuotes = isAdmin || userBranchIds.length > 0
 
@@ -59,16 +57,13 @@ export const Quotes = () => {
   })
 
   const sellerCandidates = useMemo(() => {
-    if (!selectedQuote?.branchId) return []
-
     return users.filter((candidate) => {
       const role = normalizeUserRole(candidate.role)
       const isVendor = role === 'VENDOR'
       const isActive = isUserActive(candidate.isActive)
-      const hasBranchAccess = getUserBranchIds(candidate).includes(selectedQuote.branchId ?? '')
-      return isVendor && isActive && hasBranchAccess
+      return isVendor && isActive
     })
-  }, [selectedQuote?.branchId, users])
+  }, [users])
 
   const openAssignModal = (quote: Quote) => {
     setSelectedQuote(quote)
@@ -206,123 +201,6 @@ export const Quotes = () => {
         canClearAssignment={Boolean(selectedQuote?.assignedSeller?.id)}
         isSubmitting={assignQuoteSellerMutation.isPending}
       />
-    </div>
-  )
-}
-
-interface PaginationProps {
-  page: number
-  pageSize: number
-  total: number
-  maxPagesToShow: number
-  onPageChange: (page: number) => void
-}
-
-export const Pagination: React.FC<PaginationProps> = ({ page, pageSize, total, maxPagesToShow, onPageChange }) => {
-  const totalPages = Math.ceil(total / pageSize)
-
-  if (totalPages <= 1) return null
-
-  const from = (page - 1) * pageSize + 1
-  const to = Math.min(page * pageSize, total)
-
-  const goToPage = (nextPage: number) => {
-    if (nextPage < 1 || nextPage > totalPages || nextPage === page) return
-    onPageChange(nextPage)
-  }
-
-  const getPages = (): Array<number | 'dots'> => {
-    const pages: Array<number | 'dots'> = []
-
-    if (totalPages <= maxPagesToShow) {
-      for (let currentPage = 1; currentPage <= totalPages; currentPage += 1) {
-        pages.push(currentPage)
-      }
-      return pages
-    }
-
-    const half = Math.floor(maxPagesToShow / 2)
-    let start = Math.max(1, page - half)
-    let end = Math.min(totalPages, page + half)
-
-    if (start === 1) {
-      end = Math.min(totalPages, start + maxPagesToShow - 1)
-    } else if (end === totalPages) {
-      start = Math.max(1, end - maxPagesToShow + 1)
-    }
-
-    if (start > 1) {
-      pages.push(1)
-      if (start > 2) pages.push('dots')
-    }
-
-    for (let currentPage = start; currentPage <= end; currentPage += 1) {
-      pages.push(currentPage)
-    }
-
-    if (end < totalPages) {
-      if (end < totalPages - 1) pages.push('dots')
-      pages.push(totalPages)
-    }
-
-    return pages
-  }
-
-  return (
-    <div className='flex items-center justify-center p-4'>
-      <div className='flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between'>
-        <div className='text-sm text-gray-700'>
-          <span>{from}-{to} de {total}</span>
-        </div>
-
-        <div className='flex flex-wrap items-center gap-2'>
-          <button type='button' className='btn btn-primary' onClick={() => goToPage(1)}>
-            <ChevronsLeftIcon />
-          </button>
-          <button type='button' onClick={() => goToPage(page - 1)} className='btn btn-primary'>
-            <ChevronLeft />
-          </button>
-
-          {getPages().map((currentPage, index) =>
-            currentPage === 'dots' ? (
-              <span key={`dots-${index}`} className='px-1'>
-                …
-              </span>
-            ) : (
-              <button
-                key={currentPage}
-                type='button'
-                onClick={() => goToPage(currentPage)}
-                disabled={currentPage === page}
-                className='btn btn-primary'
-              >
-                {currentPage}
-              </button>
-            )
-          )}
-
-          <button
-            type='button'
-            className='btn btn-primary'
-            onClick={() => goToPage(page + 1)}
-            disabled={page === totalPages}
-          >
-            <ChevronRight />
-          </button>
-          <button
-            type='button'
-            onClick={() => goToPage(totalPages)}
-            disabled={page === totalPages}
-            className='btn btn-primary'
-          >
-            <ChevronsRightIcon />
-          </button>
-        </div>
-
-        <div className='text-sm text-gray-700'>
-          <span>Página {page} de {totalPages}</span>
-        </div>
-      </div>
     </div>
   )
 }

@@ -27,6 +27,11 @@ import type {
   UpsertNotificationSettingPayload
 } from "../../services/users/types";
 
+type UseUsersOptions = {
+  manageableOnly?: boolean
+  enabled?: boolean
+}
+
 export const usersKeys = {
   all: ["users"] as const,
   list: (options?: { manageableOnly?: boolean }) => [...usersKeys.all, "list", { manageableOnly: Boolean(options?.manageableOnly) }] as const,
@@ -36,10 +41,11 @@ export const usersKeys = {
   workflowReminderConfig: () => [...usersKeys.all, "workflow-reminder-config"] as const
 };
 
-export const useUsers = (options?: { manageableOnly?: boolean }) => {
+export const useUsers = (options?: UseUsersOptions) => {
   return useQuery({
     queryKey: usersKeys.list(options),
-    queryFn: () => getUsers(options)
+    queryFn: () => getUsers({ manageableOnly: options?.manageableOnly }),
+    enabled: options?.enabled ?? true,
   });
 };
 

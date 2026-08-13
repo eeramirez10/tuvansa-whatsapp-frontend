@@ -5,7 +5,9 @@ import type {
   QuotesByBranchStatusReportResponse,
   QuotesExecutiveReportFilters,
   QuotesExecutiveReportResponse,
-  QuotesReportFilters
+  QuotesReportFilters,
+  QuotesUnattendedReportFilters,
+  QuotesUnattendedReportResponse
 } from './types'
 
 const buildReportsQuery = (filters?: object) => {
@@ -47,5 +49,15 @@ export const getQuotesExecutivePrintableReport = async (
 
   return await fetcher<QuotesExecutiveReportResponse>(
     `${envs.URL}/reports/quotes/executive-printable${query ? `?${query}` : ''}`
+  )
+}
+
+export const getQuotesUnattendedReport = async (
+  filters?: QuotesUnattendedReportFilters
+): Promise<QuotesUnattendedReportResponse> => {
+  const query = buildReportsQuery(filters)
+
+  return await fetcher<QuotesUnattendedReportResponse>(
+    `${envs.URL}/reports/quotes/unattended-by-branch${query ? `?${query}` : ''}`
   )
 }

@@ -11,6 +11,9 @@ import { UserCreate } from "../pages/user/UserCreate";
 import { BranchCreate } from "../pages/branch/BranchCreate";
 import { QuotesReports } from '../pages/reports/QuotesReports';
 import { QuotesExecutivePrintableReport } from '../pages/reports/QuotesExecutivePrintableReport';
+import { Customers } from '../pages/customers/Customers';
+import { CustomerDetail } from '../pages/customers/CustomerDetail';
+import { QuotesUnattendedReport } from '../pages/reports/QuotesUnattendedReport';
 
 export const router = createBrowserRouter([
 
@@ -40,6 +43,20 @@ export const router = createBrowserRouter([
         Component: QuoteWorkflowDetail,
         handle: {
           title: 'Detalle de Cotización'
+        }
+      },
+      {
+        path: '/customers',
+        Component: Customers,
+        handle: {
+          title: 'Clientes'
+        }
+      },
+      {
+        path: '/customers/:id',
+        Component: CustomerDetail,
+        handle: {
+          title: 'Detalle del cliente'
         }
       },
       {
@@ -82,6 +99,13 @@ export const router = createBrowserRouter([
         Component: QuotesExecutivePrintableReport,
         handle: {
           title: 'Reporte ejecutivo imprimible'
+        }
+      },
+      {
+        path: '/quote-reports/unattended',
+        Component: QuotesUnattendedReport,
+        handle: {
+          title: 'Cotizaciones sin atender'
         }
       }
     ]

@@ -2,9 +2,14 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import {
   getQuotesByBranchReport,
   getQuotesByBranchStatusReport,
-  getQuotesExecutivePrintableReport
+  getQuotesExecutivePrintableReport,
+  getQuotesUnattendedReport
 } from '../../services/reports/api'
-import type { QuotesExecutiveReportFilters, QuotesReportFilters } from '../../services/reports/types'
+import type {
+  QuotesExecutiveReportFilters,
+  QuotesReportFilters,
+  QuotesUnattendedReportFilters
+} from '../../services/reports/types'
 
 export const reportsKeys = {
   all: ['reports'] as const,
@@ -14,7 +19,9 @@ export const reportsKeys = {
   quotesByBranchStatus: (filters?: Omit<QuotesReportFilters, 'workflowStatus'>) =>
     [...reportsKeys.quotes(), 'by-branch-status', filters ?? {}] as const,
   quotesExecutivePrintable: (filters?: QuotesExecutiveReportFilters) =>
-    [...reportsKeys.quotes(), 'executive-printable', filters ?? {}] as const
+    [...reportsKeys.quotes(), 'executive-printable', filters ?? {}] as const,
+  quotesUnattended: (filters?: QuotesUnattendedReportFilters) =>
+    [...reportsKeys.quotes(), 'unattended-by-branch', filters ?? {}] as const
 }
 
 export const useQuotesByBranchReport = (
@@ -52,6 +59,20 @@ export const useQuotesExecutivePrintableReport = (
   return useQuery({
     queryKey: reportsKeys.quotesExecutivePrintable(filters),
     queryFn: () => getQuotesExecutivePrintableReport(filters),
+    enabled,
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+    placeholderData: keepPreviousData
+  })
+}
+
+export const useQuotesUnattendedReport = (
+  filters?: QuotesUnattendedReportFilters,
+  enabled = true
+) => {
+  return useQuery({
+    queryKey: reportsKeys.quotesUnattended(filters),
+    queryFn: () => getQuotesUnattendedReport(filters),
     enabled,
     staleTime: 30_000,
     gcTime: 5 * 60_000,

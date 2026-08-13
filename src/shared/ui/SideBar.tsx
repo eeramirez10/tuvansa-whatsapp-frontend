@@ -1,4 +1,4 @@
-import { Building2, ChartBarStackedIcon, FileTextIcon, DollarSign, LucideLayoutDashboard, Power, UserRound, Users } from 'lucide-react'
+import { Building2, ChartBarStackedIcon, CircleAlert, ContactRound, FileTextIcon, DollarSign, LucideLayoutDashboard, Power, UserRound, Users } from 'lucide-react'
 import { NavLink } from 'react-router'
 import { useUiBoundStore } from '../../store/ui/useUiBoundStore'
 import { useAuth } from '../../hooks/useAuth'
@@ -21,22 +21,28 @@ export const SideBar = () => {
   const nav = normalizedRole === 'VENDOR'
     ? [
         { name: 'Cotizaciones', to: '/quotes', icon: <DollarSign /> },
+        { name: 'Clientes', to: '/customers', icon: <ContactRound /> },
         { name: 'Perfil', to: '/user', icon: <UserRound /> },
       ]
     : [
         { name: 'Dashboard', to: '/home', icon: <LucideLayoutDashboard /> },
         { name: 'Cotizaciones', to: '/quotes', icon: <DollarSign /> },
+        { name: 'Clientes', to: '/customers', icon: <ContactRound /> },
         { name: 'Perfil', to: '/user', icon: <UserRound /> },
         { name: 'Reportes', to: '/quote-reports', icon: <ChartBarStackedIcon /> },
         { name: 'Reporte Ejecutivo', to: '/quote-reports/executive', icon: <FileTextIcon /> },
       ]
 
   if (normalizedRole === 'ADMIN' || normalizedRole === 'SALES_COORDINATOR') {
-    nav.splice(2, 0, { name: 'Usuarios', to: '/users', icon: <Users /> })
+    nav.splice(3, 0, { name: 'Usuarios', to: '/users', icon: <Users /> })
+  }
+
+  if (normalizedRole === 'ADMIN' || normalizedRole === 'SALES_COORDINATOR' || normalizedRole === 'BRANCH_MANAGER') {
+    nav.push({ name: 'Sin atender', to: '/quote-reports/unattended', icon: <CircleAlert /> })
   }
 
   if (normalizedRole === 'ADMIN') {
-    nav.splice(3, 0, { name: 'Sucursales', to: '/branchs/new', icon: <Building2 /> })
+    nav.splice(4, 0, { name: 'Sucursales', to: '/branchs/new', icon: <Building2 /> })
   }
 
   return (

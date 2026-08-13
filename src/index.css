@@ -204,4 +204,88 @@ html, body {
     break-inside: avoid;
     page-break-inside: avoid;
   }
+
+  body.print-report-unattended .app-sidebar,
+  body.print-report-unattended .app-topbar {
+    display: none !important;
+  }
+
+  body.print-report-unattended .app-shell,
+  body.print-report-unattended .app-main,
+  body.print-report-unattended .app-content {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body.print-report-unattended .app-main {
+    margin-left: 0 !important;
+  }
+
+  body.print-report-unattended .app-content {
+    padding: 0 !important;
+  }
+
+  body.print-report-unattended .report-unattended-page {
+    page: unattended-report;
+    padding: 0 !important;
+  }
+
+  body.print-report-unattended .report-unattended-kpis > div {
+    min-height: 21mm;
+    padding: 3mm !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  body.print-report-unattended .report-unattended-kpis p:first-child {
+    font-size: 8pt !important;
+  }
+
+  body.print-report-unattended .report-unattended-kpis p:last-child {
+    margin-top: 1mm !important;
+    font-size: 16pt !important;
+  }
+
+  body.print-report-unattended .report-unattended-summary,
+  body.print-report-unattended .report-unattended-branch {
+    box-shadow: none !important;
+  }
+
+  body.print-report-unattended .report-unattended-summary {
+    break-inside: avoid;
+  }
+
+  body.print-report-unattended .report-unattended-branch {
+    break-before: page;
+    border-color: #d1d5db !important;
+  }
+
+  body.print-report-unattended .report-unattended-table {
+    min-width: 0 !important;
+    width: 100% !important;
+    font-size: 8pt !important;
+  }
+
+  body.print-report-unattended .report-unattended-table thead {
+    display: table-header-group;
+  }
+
+  body.print-report-unattended .report-unattended-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  body.print-report-unattended .report-unattended-table th,
+  body.print-report-unattended .report-unattended-table td {
+    padding: 2mm 2.5mm !important;
+  }
+
+  body.print-report-unattended .report-unattended-table a {
+    display: none !important;
+  }
+}
+
+@page unattended-report {
+  size: letter landscape;
+  margin: 9mm;
 }

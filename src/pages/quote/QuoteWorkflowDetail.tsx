@@ -111,10 +111,6 @@ const isUserActive = (value: unknown) => {
   return ['true', '1', 'active', 'activo'].includes(`${value ?? ''}`.toLowerCase())
 }
 
-const getUserBranchIds = (user: User) => {
-  return (user.branchOffices ?? (user.branchOffice ? [user.branchOffice] : [])).map((branch) => branch.id)
-}
-
 const getUserFullName = (user?: User | null) => {
   if (!user) return 'Sin asignar'
   return `${user.name} ${user.lastname}`.trim()
@@ -134,7 +130,10 @@ export const QuoteWorkflowDetail = () => {
   const { user } = useAuth()
   const isAdmin = normalizeUserRole(user?.role) === 'ADMIN'
   const canAssignSeller = canAssignQuotesToVendors(user?.role)
-  const { data: users } = useUsers()
+  const { data: users } = useUsers({
+    manageableOnly: true,
+    enabled: canAssignSeller,
+  })
   const assignQuoteSellerMutation = useAssignQuoteSeller()
 
   const { data: quote, isLoading } = useQuoteDetailQuery(id)
@@ -164,16 +163,13 @@ export const QuoteWorkflowDetail = () => {
   const isExcelFile = isExcel(normalizedFileKey)
   const hasExtractedItems = (quote?.items?.length ?? 0) > 0
   const sellerCandidates = useMemo(() => {
-    if (!quote?.branchId) return []
-
     return (users ?? []).filter((candidate) => {
       const role = normalizeUserRole(candidate.role)
       const isVendor = role === 'VENDOR'
       const isActive = isUserActive(candidate.isActive)
-      const hasBranchAccess = getUserBranchIds(candidate).includes(quote.branchId ?? '')
-      return isVendor && isActive && hasBranchAccess
+      return isVendor && isActive
     })
-  }, [quote?.branchId, users])
+  }, [users])
   const assignedSellerName = getUserFullName(quote?.assignedSeller)
 
   const [erpQuoteNumber, setErpQuoteNumber] = useState('')
