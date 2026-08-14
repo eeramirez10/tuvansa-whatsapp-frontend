@@ -1,6 +1,6 @@
 import { envs } from '../../config/envs'
 import type { Quote } from '../../store/quote/quote.store'
-import { deleteFetcher, fetcher, patchFetcher, postFetcher } from '../../utils/fetcher'
+import { deleteFetcher, ensureSuccessfulResponse, fetcher, patchFetcher, postFetcher } from '../../utils/fetcher'
 import { useAuthStore } from '../../store/auth/auth.store'
 
 import { displayToStoreQuote, type DisplayResult } from './quote-display.mapper'
@@ -122,16 +122,7 @@ export const getQuoteAttachmentFileBlob = async (quoteId: string): Promise<Blob>
     },
   })
 
-  if (!response.ok) {
-    let errorMessage = 'No se pudo descargar el archivo adjunto'
-    try {
-      const body = (await response.json()) as Record<string, unknown>
-      errorMessage = `${body.error ?? errorMessage}`
-    } catch {
-      // noop
-    }
-    throw new Error(errorMessage)
-  }
+  await ensureSuccessfulResponse(response, 'No se pudo descargar el archivo adjunto')
 
   return await response.blob()
 }

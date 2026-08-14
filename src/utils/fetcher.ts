@@ -1,5 +1,35 @@
 import { useAuthStore } from "../store/auth/auth.store";
 
+const getResponseError = async (response: Response, fallbackMessage = 'Error en la solicitud') => {
+  if (response.status === 401) {
+    useAuthStore.getState().logout()
+  }
+
+  let errorMessage = response.status === 401
+    ? 'Tu sesión expiró. Inicia sesión nuevamente.'
+    : fallbackMessage
+
+  try {
+    const body = await response.json() as Record<string, unknown>
+    if (response.status !== 401 && body.error) {
+      errorMessage = `${body.error}`
+    }
+  } catch {
+    // La respuesta puede no incluir un cuerpo JSON.
+  }
+
+  return new Error(errorMessage)
+}
+
+export const ensureSuccessfulResponse = async (
+  response: Response,
+  fallbackMessage?: string,
+) => {
+  if (!response.ok) {
+    throw await getResponseError(response, fallbackMessage)
+  }
+}
+
 
 export const fetcher = async <T>(url: string, options?: RequestInit): Promise<T> => {
   const response = await fetch(url, {
@@ -12,13 +42,7 @@ export const fetcher = async <T>(url: string, options?: RequestInit): Promise<T>
     }
   });
 
-  if (!response.ok) {
-
-    const body = await response.json()
-    const errorMessage = body['error']
-
-    throw new Error(errorMessage);
-  };
+  await ensureSuccessfulResponse(response)
 
   const data = (await response.json()) as T;
   return data;
@@ -41,13 +65,7 @@ export const postFetcher = async <T>(
     body: JSON.stringify(data)
   });
 
-  if (!response.ok) {
-
-    const body = await response.json()
-    const errorMessage = body['error']
-
-    throw new Error(errorMessage);
-  };
+  await ensureSuccessfulResponse(response)
 
   const result = (await response.json()) as T;
   return result;
@@ -69,13 +87,7 @@ export const putFetcher = async <T>(
     body: JSON.stringify(data)
   });
 
-  if (!response.ok) {
-
-    const body = await response.json()
-    const errorMessage = body['error']
-
-    throw new Error(errorMessage);
-  };
+  await ensureSuccessfulResponse(response)
 
   const result = (await response.json()) as T;
   return result;
@@ -97,11 +109,7 @@ export const patchFetcher = async <T>(
     body: JSON.stringify(data)
   });
 
-  if (!response.ok) {
-    const body = await response.json()
-    const errorMessage = body['error']
-    throw new Error(errorMessage);
-  };
+  await ensureSuccessfulResponse(response)
 
   const result = (await response.json()) as T;
   return result;
@@ -121,16 +129,7 @@ export const deleteFetcher = async <T>(
     }
   });
 
-  if (!response.ok) {
-    let errorMessage = 'Error al eliminar'
-    try {
-      const body = await response.json()
-      errorMessage = body['error'] ?? errorMessage
-    } catch {
-      // noop
-    }
-    throw new Error(errorMessage);
-  };
+  await ensureSuccessfulResponse(response, 'Error al eliminar')
 
   return (await response.json()) as T;
 };
