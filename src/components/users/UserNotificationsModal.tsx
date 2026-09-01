@@ -1,6 +1,6 @@
 import type { Dispatch, FormEvent, SetStateAction } from 'react'
-import { BellRing, Save } from 'lucide-react'
-import type { UpsertNotificationSettingPayload } from '../../services/users/types'
+import { BellRing, Plus, Save } from 'lucide-react'
+import type { NotificationSetting, UpsertNotificationSettingPayload } from '../../services/users/types'
 import { CHANNEL_OPTIONS, EVENT_OPTIONS, SCOPE_OPTIONS, TEMPLATE_OPTIONS } from './UserNotificationOptions'
 import { SelectField } from './UserUi'
 import { UserModalShell } from './UserModalShell'
@@ -10,12 +10,17 @@ interface UserNotificationsModalProps {
   onClose: () => void
   users: Array<{ id: string; name: string; lastname: string; username: string }>
   notificationForm: UpsertNotificationSettingPayload
+  notificationSettings: NotificationSetting[]
+  settingsLoading: boolean
   workflowReminderEnabled: boolean
   workflowReminderConfigLoading: boolean
   isSavingNotification: boolean
   isSendingTest: boolean
   isUpdatingWorkflowReminderConfig: boolean
   setNotificationForm: Dispatch<SetStateAction<UpsertNotificationSettingPayload>>
+  handleLoadSettingInForm: (setting: NotificationSetting) => void
+  handleSelectNotificationUser: (userId: string) => void
+  handleStartNewNotificationSetting: () => void
   setWorkflowReminderEnabled: (value: boolean) => void
   handleSaveNotification: (event: FormEvent<HTMLFormElement>) => Promise<void>
   handleSendTest: (payload: { userId: string; event: string; channel: string; template: string }) => Promise<void>
@@ -27,23 +32,44 @@ export const UserNotificationsModal = ({
   onClose,
   users,
   notificationForm,
+  notificationSettings,
+  settingsLoading,
   workflowReminderEnabled,
   workflowReminderConfigLoading,
   isSavingNotification,
   isSendingTest,
   isUpdatingWorkflowReminderConfig,
   setNotificationForm,
+  handleLoadSettingInForm,
+  handleSelectNotificationUser,
+  handleStartNewNotificationSetting,
   setWorkflowReminderEnabled,
   handleSaveNotification,
   handleSendTest,
   handleSaveWorkflowReminderConfig,
 }: UserNotificationsModalProps) => {
+  const selectedSetting = notificationSettings.find(
+    (setting) => setting.event === notificationForm.event && setting.channel === notificationForm.channel,
+  )
+
+  const registeredSettingOptions = notificationSettings.map((setting) => {
+    const eventLabel = EVENT_OPTIONS.find((option) => option.value === setting.event)?.label ?? setting.event
+    const channelLabel = CHANNEL_OPTIONS.find((option) => option.value === setting.channel)?.label ?? setting.channel
+    const templateLabel = TEMPLATE_OPTIONS.find((option) => option.value === setting.template)?.label ?? setting.template
+    const statusLabel = setting.enabled ? 'Activa' : 'Inactiva'
+
+    return {
+      value: setting.id,
+      label: `${eventLabel} · ${channelLabel} · ${templateLabel} · ${statusLabel}`,
+    }
+  })
+
   return (
     <UserModalShell
       open={open}
       onClose={onClose}
-      title='Asignar notificaciones'
-      subtitle='Configura qué usuario recibe cada tipo de evento y controla el recordatorio de workflow.'
+      title='Configurar notificaciones'
+      subtitle='Consulta las configuraciones reales del usuario y edita cada evento por separado.'
       widthClassName='max-w-2xl'
     >
       <div className='space-y-5'>
@@ -51,9 +77,47 @@ export const UserNotificationsModal = ({
           <SelectField
             label='Usuario'
             value={notificationForm.userId}
-            onChange={(value) => setNotificationForm((prev) => ({ ...prev, userId: value }))}
+            onChange={handleSelectNotificationUser}
             options={users.map((user) => ({ value: user.id, label: `${user.name} ${user.lastname} (${user.username})` }))}
           />
+
+          <div className='space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-3'>
+            <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
+              <div>
+                <p className='text-sm font-semibold text-gray-800'>Configuraciones registradas</p>
+                <p className='text-xs text-gray-500'>
+                  {settingsLoading
+                    ? 'Cargando configuraciones...'
+                    : `${notificationSettings.length} configuración${notificationSettings.length === 1 ? '' : 'es'} para este usuario`}
+                </p>
+              </div>
+              <button
+                type='button'
+                onClick={handleStartNewNotificationSetting}
+                disabled={!notificationForm.userId || settingsLoading}
+                className='inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-amber-300 hover:text-amber-700 disabled:cursor-not-allowed disabled:text-gray-400'
+              >
+                <Plus className='h-4 w-4' />
+                Nueva configuración
+              </button>
+            </div>
+
+            {notificationSettings.length > 0 ? (
+              <SelectField
+                label='Configuración guardada'
+                value={selectedSetting?.id ?? ''}
+                onChange={(settingId) => {
+                  const setting = notificationSettings.find((item) => item.id === settingId)
+                  if (setting) handleLoadSettingInForm(setting)
+                }}
+                options={registeredSettingOptions}
+              />
+            ) : !settingsLoading ? (
+              <p className='rounded-lg border border-dashed border-gray-300 bg-white px-3 py-2 text-xs text-gray-500'>
+                Este usuario no tiene configuraciones registradas. El formulario muestra valores iniciales para crear una.
+              </p>
+            ) : null}
+          </div>
 
           <SelectField
             label='Evento'
@@ -114,6 +178,10 @@ export const UserNotificationsModal = ({
         </form>
 
         <div className='space-y-3 border-t border-gray-100 pt-5'>
+          <div>
+            <p className='text-sm font-semibold text-gray-800'>Recordatorio global del sistema</p>
+            <p className='text-xs text-gray-500'>Esta opción aplica de forma general y no pertenece al usuario seleccionado.</p>
+          </div>
           <p className='text-xs text-gray-500'>
             Controla si se envía la notificación al manager cuando la cotización pasa a <span className='font-semibold'>En progreso</span>.
           </p>

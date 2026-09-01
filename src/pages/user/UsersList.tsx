@@ -29,6 +29,7 @@ export const UsersList = () => {
     branchOptions,
     branchNameById,
     orderedSettings,
+    selectedUserNotificationSettings,
     settingsLoading,
     workflowReminderConfigLoading,
     filter,
@@ -56,6 +57,8 @@ export const UsersList = () => {
     isUpdatingWorkflowReminderConfig,
     allowsMultipleBranches,
     handleLoadSettingInForm,
+    handleSelectNotificationUser,
+    handleStartNewNotificationSetting,
     handleEditChange,
     handleEditRoleChange,
     handleSaveUser,
@@ -82,7 +85,7 @@ export const UsersList = () => {
 
   const openNotifications = (id: string) => {
     setSelectedId(id)
-    setNotificationForm((prev) => ({ ...prev, userId: id }))
+    handleSelectNotificationUser(id)
     setNotificationsOpen(true)
   }
 
@@ -187,12 +190,17 @@ export const UsersList = () => {
         onClose={() => setNotificationsOpen(false)}
         users={users}
         notificationForm={notificationForm}
+        notificationSettings={selectedUserNotificationSettings}
+        settingsLoading={settingsLoading}
         workflowReminderEnabled={workflowReminderEnabled}
         workflowReminderConfigLoading={workflowReminderConfigLoading}
         isSavingNotification={isSavingNotification}
         isSendingTest={isSendingTest}
         isUpdatingWorkflowReminderConfig={isUpdatingWorkflowReminderConfig}
         setNotificationForm={setNotificationForm}
+        handleLoadSettingInForm={handleLoadSettingInForm}
+        handleSelectNotificationUser={handleSelectNotificationUser}
+        handleStartNewNotificationSetting={handleStartNewNotificationSetting}
         setWorkflowReminderEnabled={setWorkflowReminderEnabled}
         handleSaveNotification={handleSaveNotification}
         handleSendTest={handleSendTest}

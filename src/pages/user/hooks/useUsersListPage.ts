@@ -45,10 +45,19 @@ const EMPTY_NOTIFICATION_FORM: UpsertNotificationSettingPayload = {
   userId: '',
   event: 'QUOTE_CREATED',
   channel: 'WHATSAPP',
-  template: 'QUOTE_WORKFLOW_MANAGER_NEW',
-  scope: 'OWN_BRANCH',
+  template: 'QUOTE_WEB_NOTIFICATION_ICONS',
+  scope: 'GLOBAL',
   enabled: true,
 }
+
+const notificationSettingToForm = (setting: NotificationSetting): UpsertNotificationSettingPayload => ({
+  userId: setting.userId,
+  event: setting.event,
+  channel: setting.channel,
+  template: setting.template,
+  scope: setting.scope,
+  enabled: setting.enabled,
+})
 
 export const useUsersListPage = () => {
   const { user: authUser } = useAuth()
@@ -87,6 +96,7 @@ export const useUsersListPage = () => {
   const [filter, setFilter] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [notificationForm, setNotificationForm] = useState<UpsertNotificationSettingPayload>(EMPTY_NOTIFICATION_FORM)
+  const [pendingNotificationUserId, setPendingNotificationUserId] = useState<string | null>(null)
   const [notificationTestResults, setNotificationTestResults] = useState<NotificationTestResult[]>([])
   const [workflowReminderEnabled, setWorkflowReminderEnabled] = useState(true)
   const [editForm, setEditForm] = useState<UpdateUserPayload>(EMPTY_EDIT_FORM)
@@ -214,6 +224,11 @@ export const useUsersListPage = () => {
     })
   }, [settings])
 
+  const selectedUserNotificationSettings = useMemo(() => {
+    if (!notificationForm.userId) return []
+    return orderedSettings.filter((setting) => setting.userId === notificationForm.userId)
+  }, [notificationForm.userId, orderedSettings])
+
   const isSavingNotification = upsertNotificationSettingMutation.isPending
   const isDeletingNotification = deleteNotificationSettingMutation.isPending
   const isDeletingUser = deleteUserMutation.isPending
@@ -224,15 +239,51 @@ export const useUsersListPage = () => {
   const allowsMultipleBranches = roleAllowsMultipleBranches(editForm.role)
 
   const handleLoadSettingInForm = (setting: NotificationSetting) => {
+    setNotificationForm(notificationSettingToForm(setting))
+  }
+
+  const handleSelectNotificationUser = (userId: string) => {
+    if (settingsLoading) {
+      setPendingNotificationUserId(userId)
+      setNotificationForm({
+        ...EMPTY_NOTIFICATION_FORM,
+        userId,
+      })
+      return
+    }
+
+    setPendingNotificationUserId(null)
+    const firstSetting = orderedSettings.find((setting) => setting.userId === userId)
+
+    if (firstSetting) {
+      handleLoadSettingInForm(firstSetting)
+      return
+    }
+
     setNotificationForm({
-      userId: setting.userId,
-      event: setting.event,
-      channel: setting.channel,
-      template: setting.template,
-      scope: setting.scope,
-      enabled: setting.enabled,
+      ...EMPTY_NOTIFICATION_FORM,
+      userId,
     })
   }
+
+  const handleStartNewNotificationSetting = () => {
+    setPendingNotificationUserId(null)
+    setNotificationForm({
+      ...EMPTY_NOTIFICATION_FORM,
+      userId: notificationForm.userId,
+    })
+  }
+
+  useEffect(() => {
+    if (settingsLoading || !pendingNotificationUserId) return
+
+    const firstSetting = orderedSettings.find((setting) => setting.userId === pendingNotificationUserId)
+    if (firstSetting) {
+      setNotificationForm(notificationSettingToForm(firstSetting))
+    }
+
+    setPendingNotificationUserId(null)
+  }, [orderedSettings, pendingNotificationUserId, settingsLoading])
 
   const handleEditChange = (field: keyof UpdateUserPayload, value: string | boolean | string[]) => {
     setEditForm((prev) => ({ ...prev, [field]: value }))
@@ -430,6 +481,7 @@ export const useUsersListPage = () => {
     branchOptions,
     branchNameById,
     orderedSettings,
+    selectedUserNotificationSettings,
     settingsLoading,
     workflowReminderConfigLoading,
     filter,
@@ -459,6 +511,8 @@ export const useUsersListPage = () => {
     isUpdatingWorkflowReminderConfig,
     allowsMultipleBranches,
     handleLoadSettingInForm,
+    handleSelectNotificationUser,
+    handleStartNewNotificationSetting,
     handleEditChange,
     handleEditRoleChange,
     handleSaveUser,
